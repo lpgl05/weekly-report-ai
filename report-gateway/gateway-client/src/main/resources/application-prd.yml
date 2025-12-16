@@ -1,0 +1,22 @@
+sys:
+    feishu:
+        app-id: cli_a9887789f7a7900b
+        app-secret: X5iNGcV4XZXehIQ4Tr0ZhhvxDpKBzynl
+    coze:
+        agent-name: 天九科技营销周报
+        workflow-id: 7579641500927442954
+        app-id: 7578779036689088546
+        secret-token: sat_lYUYfkyZFMSnh8iV6H1oE0XS8aTIMKGhgnHrsuRMQeSSnlcsrTKQxWScYbxdqEQW
+        url: https://api.coze.cn
+        connect-timeout: 10000
+        read-timeout: 610000
+        time-span: 7
+
+spring:
+    servlet:
+        multipart:
+            max-file-size: 10MB
+            max-request-size: 50MB
+
+logging:
+    config: classpath:logback/logback-prd.xml
