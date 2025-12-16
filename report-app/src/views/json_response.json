@@ -1,0 +1,354 @@
+{
+    "msg": "操作成功",
+    "code": 200,
+    "data": {
+        "content": {
+            "ai_sales_assistant": {
+                "business_units_3_2": {
+                    "highest_registered_untrusted": "B事业部（15 人）",
+                    "highest_uncompleted_middle_library": "A事业部（15 人）",
+                    "highest_unregistered": "C事业部（10 人）",
+                    "lowest_wechat_trusteeship": "A事业部（80 人）"
+                },
+                "general_manager_teams_3_3": {
+                    "highest_registered_untrusted": "D团队（12 人）",
+                    "highest_uncompleted_middle_library": "D团队（10 人）",
+                    "highest_unregistered": "C团队（8 人）",
+                    "lowest_wechat_trusteeship": "C团队（85 人）"
+                },
+                "section_3_1": {
+                    "activation": "激活人数 150 人；共有 30 人已注册但仍未托管，有 20 人未注册",
+                    "middle_library_id": "截至 11 月 20 日，南部大区全员未完成中间库 ID 填写，具体明细如下：[相关文件]",
+                    "overall": "截至 11 月 20 日，南部大区共计托管 200 万人，人均托管 100 人"
+                },
+                "table_3_1": {
+                    "columns": [
+                        "事业部",
+                        "微信托管数",
+                        "注册未托管员工数",
+                        "未注册员工数",
+                        "未完成中间库ID填写人数"
+                    ],
+                    "data": [
+                        [
+                            "A事业部",
+                            80,
+                            10,
+                            8,
+                            15
+                        ],
+                        [
+                            "B事业部",
+                            90,
+                            15,
+                            5,
+                            10
+                        ],
+                        [
+                            "C团队",
+                            85,
+                            12,
+                            8,
+                            10
+                        ],
+                        [
+                            "D团队",
+                            95,
+                            8,
+                            4,
+                            10
+                        ]
+                    ],
+                    "title": "大区销售 AI 助手注册和托管情况"
+                }
+            },
+            "business_opportunity_qr": {
+                "business_units_6_2": {
+                    "lowest_reach": "A事业部（30 人）"
+                },
+                "general_manager_teams_6_3": {
+                    "lowest_reach": "C团队（35 人）"
+                },
+                "section_6_1": {
+                    "overall": "本周南部大区通过商机一码通触达共计 150 个客户"
+                },
+                "table_6_1": {
+                    "columns": [
+                        "事业部",
+                        "触达客户数"
+                    ],
+                    "data": [
+                        [
+                            "A事业部",
+                            30
+                        ],
+                        [
+                            "B事业部",
+                            40
+                        ],
+                        [
+                            "C团队",
+                            35
+                        ],
+                        [
+                            "D团队",
+                            45
+                        ]
+                    ],
+                    "title": "大区商机一码通情况"
+                }
+            },
+            "cold_leads": {
+                "business_units": {
+                    "highest_low_view_rate_count": "B事业部（10 人）",
+                    "lowest_view_rate": "A事业部（70.00%）",
+                    "remarks": "[关键问题：部分事业部对冷线索重视程度不够，建议加强线索查看的培训与监督。]"
+                },
+                "details": "查看率 < 90% 明细如下：[提及相关文件]",
+                "general_manager_teams": {
+                    "highest_low_view_rate_count": "D团队（深圳）（8 人）",
+                    "lowest_view_rate": "C团队（广州）（75.00%）",
+                    "remarks": "[关键问题：部分团队查看率较低，建议团队负责人加强管理。]"
+                },
+                "overall": "本周南部大区共计领取 + 分配 100 次冷线索，查看 80 人次，查看率 80.00%，查看率 < 90% 人数 20 人。",
+                "table_1_1": {
+                    "columns": [
+                        "组织",
+                        "线索人次",
+                        "线索人数",
+                        "分配人次",
+                        "查看人次",
+                        "查看率",
+                        "查看率低于90%人数",
+                        "入库人数",
+                        "入库率"
+                    ],
+                    "data": [
+                        [
+                            "A事业部",
+                            50,
+                            30,
+                            40,
+                            28,
+                            "70.00%",
+                            12,
+                            5,
+                            "16.67%"
+                        ],
+                        [
+                            "B事业部",
+                            30,
+                            20,
+                            25,
+                            20,
+                            "80.00%",
+                            10,
+                            4,
+                            "20.00%"
+                        ],
+                        [
+                            "C团队（广州）",
+                            20,
+                            15,
+                            18,
+                            13,
+                            "72.22%",
+                            5,
+                            3,
+                            "20.00%"
+                        ],
+                        [
+                            "D团队（深圳）",
+                            15,
+                            10,
+                            12,
+                            9,
+                            "75.00%",
+                            8,
+                            2,
+                            "20.00%"
+                        ]
+                    ],
+                    "title": "冷线索转化数据"
+                }
+            },
+            "customer_radar": {
+                "business_units_4_2": {
+                    "highest_unqualified": "A事业部（10 人）",
+                    "lowest_entrepreneur_ratio": "B事业部（20.00%）",
+                    "lowest_per_capita": "A事业部（3 人）"
+                },
+                "general_manager_teams_4_3": {
+                    "highest_unqualified": "C团队（8 人）",
+                    "lowest_entrepreneur_ratio": "D团队（25.00%）",
+                    "lowest_per_capita": "C团队（4 人）"
+                },
+                "section_4_1": {
+                    "entrepreneur_customers": "企业家获客 30 人（占比 30.00%），未达标人数 20 人",
+                    "overall": "本月南部大区找客雷达累计获客 100 人，人均获客 5 人"
+                },
+                "table_4_1": {
+                    "columns": [
+                        "事业部",
+                        "累计获客数",
+                        "人均获客数",
+                        "企业家获客占比",
+                        "未达标人数"
+                    ],
+                    "data": [
+                        [
+                            "A事业部",
+                            30,
+                            3,
+                            "30.00%",
+                            10
+                        ],
+                        [
+                            "B事业部",
+                            25,
+                            4,
+                            "20.00%",
+                            8
+                        ],
+                        [
+                            "C团队",
+                            20,
+                            4,
+                            "25.00%",
+                            8
+                        ],
+                        [
+                            "D团队",
+                            25,
+                            5,
+                            "30.00%",
+                            4
+                        ]
+                    ],
+                    "title": "找客雷达获客数"
+                }
+            },
+            "hot_leads": {
+                "section_2_1": {
+                    "business_units": "6H 未查看客户数最多：A事业部（8 人）",
+                    "general_manager_teams": "6H 未查看客户数最多：C团队（广州）（6 人）",
+                    "overall": "本周南部大区热线索 6H 未查看 15 人，未查看客户数 20 人。"
+                },
+                "section_2_2": {
+                    "feedback": "反馈客户数 30 人，反馈率 60.00%",
+                    "overall": "本周（2025-11-13 - 2025-11-20）南部大区热线索共计分配 50 条，查看 40 人次，查看率 80.00%",
+                    "performance_metrics": {
+                        "low_feedback_rate": "反馈率 < 80% 的共有 20 人",
+                        "low_view_rate": "查看率 < 90% 的共有 15 人"
+                    }
+                },
+                "table_2_1": {
+                    "columns": [
+                        "事业部",
+                        "员工人数",
+                        "6H未查看员工数",
+                        "6H未查看客户数"
+                    ],
+                    "data": [
+                        [
+                            "A事业部",
+                            30,
+                            10,
+                            8
+                        ],
+                        [
+                            "B事业部",
+                            25,
+                            5,
+                            5
+                        ],
+                        [
+                            "C团队（广州）",
+                            15,
+                            6,
+                            6
+                        ],
+                        [
+                            "D团队（深圳）",
+                            12,
+                            4,
+                            4
+                        ]
+                    ],
+                    "title": "大区热线索 6H 未查看数"
+                },
+                "table_2_2": {
+                    "columns": [
+                        "总经理团队",
+                        "员工人数",
+                        "6H未查看员工数",
+                        "6H未查看客户数"
+                    ],
+                    "data": [
+                        [
+                            "C团队（广州）",
+                            15,
+                            6,
+                            6
+                        ],
+                        [
+                            "D团队（深圳）",
+                            12,
+                            4,
+                            4
+                        ]
+                    ],
+                    "title": "专人专线承接名单分配线索情况汇总"
+                }
+            },
+            "live_streaming": {
+                "business_units_5_2": {
+                    "lowest_per_capita_middle_library": "A事业部（3 人）"
+                },
+                "general_manager_teams_5_3": {
+                    "lowest_per_capita_middle_library": "C团队（3.5 人）"
+                },
+                "section_5_1": {
+                    "middle_library_viewers": "其中中间库观看客户数 80 人，人均中间库观看客户数 4 人",
+                    "overall": "本周南部大区各类型直播共计产生观看客户数 200 人"
+                },
+                "table_5_1": {
+                    "columns": [
+                        "事业部",
+                        "观看客户数",
+                        "中间库观看客户数",
+                        "人均中间库观看客户数"
+                    ],
+                    "data": [
+                        [
+                            "A事业部",
+                            50,
+                            15,
+                            3
+                        ],
+                        [
+                            "B事业部",
+                            60,
+                            25,
+                            4.17
+                        ],
+                        [
+                            "C团队",
+                            40,
+                            14,
+                            3.5
+                        ],
+                        [
+                            "D团队",
+                            50,
+                            26,
+                            5.2
+                        ]
+                    ],
+                    "title": "大区直播观看数据统计"
+                }
+            }
+        },
+        "title": "南部大区本周科技营销总结（2025-11-13 - 2025-11-20）"
+    }
+}

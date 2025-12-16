@@ -1,0 +1,171 @@
+{
+    "msg": "操作成功",
+    "code": 200,
+    "data": {
+        "content": {
+            "ai_sales_assistant": {
+                "business_units_3_2": {
+                    "highest_registered_untrusted": "X事业部（X 人）",
+                    "highest_uncompleted_middle_library": "X事业部（X 人）",
+                    "highest_unregistered": "X事业部（X 人）",
+                    "lowest_wechat_trusteeship": "X事业部（X 人）"
+                },
+                "general_manager_teams_3_3": {
+                    "highest_registered_untrusted": "X团队（X 人）",
+                    "highest_uncompleted_middle_library": "X团队（X 人）",
+                    "highest_unregistered": "X团队（X 人）",
+                    "lowest_wechat_trusteeship": "X团队（X 人）"
+                },
+                "section_3_1": {
+                    "activation": "激活人数 X 人；共有 X 人已注册但仍未托管，有 X 人未注册",
+                    "middle_library_id": "截至 X 月 X 日，南部大区全员未完成中间库 ID 填写，具体明细如下：[相关文件]",
+                    "overall": "截至 X 月 X 日，南部大区共计托管 X 万人，人均托管 X 人"
+                },
+                "table_3_1": {
+                    "columns": [
+                        "事业部",
+                        "微信托管数",
+                        "注册未托管员工数",
+                        "未注册员工数",
+                        "未完成中间库ID填写人数"
+                    ],
+                    "data": "[具体数据行]",
+                    "title": "大区销售 AI 助手注册和托管情况"
+                }
+            },
+            "business_opportunity_qr": {
+                "business_units_6_2": {
+                    "lowest_reach": "X事业部（X 人）"
+                },
+                "general_manager_teams_6_3": {
+                    "lowest_reach": "X团队（X 人）"
+                },
+                "section_6_1": {
+                    "overall": "本周南部大区通过商机一码通触达共计 X 个客户"
+                },
+                "table_6_1": {
+                    "columns": [
+                        "事业部",
+                        "触达客户数"
+                    ],
+                    "data": "[具体数据行]",
+                    "title": "大区商机一码通情况"
+                }
+            },
+            "cold_leads": {
+                "business_units": {
+                    "highest_low_view_rate_count": "X事业部（X 人）",
+                    "lowest_view_rate": "X事业部（X%）",
+                    "remarks": "[关键问题和建议]"
+                },
+                "details": "查看率 < 90% 明细如下：[提及相关文件]",
+                "general_manager_teams": {
+                    "highest_low_view_rate_count": "X团队（X地）（X 人）",
+                    "lowest_view_rate": "X团队（X地）（X%）",
+                    "remarks": "[关键问题和建议]"
+                },
+                "overall": "本周南部大区共计领取 + 分配 X 次冷线索，查看 X 人次，查看率 X%，查看率 < 90% 人数 X 人。",
+                "table_1_1": {
+                    "columns": [
+                        "组织",
+                        "线索人次",
+                        "线索人数",
+                        "分配人次",
+                        "查看人次",
+                        "查看率",
+                        "查看率低于90%人数",
+                        "入库人数",
+                        "入库率"
+                    ],
+                    "data": "[具体数据行]",
+                    "title": "冷线索转化数据"
+                }
+            },
+            "customer_radar": {
+                "business_units_4_2": {
+                    "highest_unqualified": "X事业部（X 人）",
+                    "lowest_entrepreneur_ratio": "X事业部（X%）",
+                    "lowest_per_capita": "X事业部（X 人）"
+                },
+                "general_manager_teams_4_3": {
+                    "highest_unqualified": "X团队（X 人）",
+                    "lowest_entrepreneur_ratio": "X团队（X%）",
+                    "lowest_per_capita": "X团队（X 人）"
+                },
+                "section_4_1": {
+                    "entrepreneur_customers": "企业家获客 X 人（占比 X%），未达标人数 X 人",
+                    "overall": "本月南部大区找客雷达累计获客 X 人，人均获客 X 人"
+                },
+                "table_4_1": {
+                    "columns": [
+                        "事业部",
+                        "累计获客数",
+                        "人均获客数",
+                        "企业家获客占比",
+                        "未达标人数"
+                    ],
+                    "data": "[具体数据行]",
+                    "title": "找客雷达获客数"
+                }
+            },
+            "hot_leads": {
+                "section_2_1": {
+                    "business_units": "6H 未查看客户数最多：X事业部（X 人）",
+                    "general_manager_teams": "6H 未查看客户数最多：X团队（X地）（X 人）",
+                    "overall": "本周南部大区热线索 6H 未查看 X 人，未查看客户数 X 人。"
+                },
+                "section_2_2": {
+                    "feedback": "反馈客户数 X 人，反馈率 X%",
+                    "overall": "本周（X - X）南部大区热线索共计分配 X 条，查看 X 人次，查看率 X%",
+                    "performance_metrics": {
+                        "low_feedback_rate": "反馈率 < 80% 的共有 X 人",
+                        "low_view_rate": "查看率 < 90% 的共有 X 人"
+                    }
+                },
+                "table_2_1": {
+                    "columns": [
+                        "事业部",
+                        "员工人数",
+                        "6H未查看员工数",
+                        "6H未查看客户数"
+                    ],
+                    "data": "[具体数据行]",
+                    "title": "大区热线索 6H 未查看数"
+                },
+                "table_2_2": {
+                    "columns": [
+                        "总经理团队",
+                        "员工人数",
+                        "6H未查看员工数",
+                        "6H未查看客户数"
+                    ],
+                    "data": "[具体数据行]",
+                    "title": "专人专线承接名单分配线索情况汇总"
+                }
+            },
+            "live_streaming": {
+                "business_units_5_2": {
+                    "lowest_per_capita_middle_library": "X事业部（X 人）"
+                },
+                "general_manager_teams_5_3": {
+                    "lowest_per_capita_middle_library": "X团队（X 人）"
+                },
+                "section_5_1": {
+                    "middle_library_viewers": "其中中间库观看客户数 X 人，人均中间库观看客户数 X 人",
+                    "overall": "本周南部大区各类型直播共计产生观看客户数 X 人"
+                },
+                "table_5_1": {
+                    "columns": [
+                        "事业部",
+                        "观看客户数",
+                        "中间库观看客户数",
+                        "人均中间库观看客户数"
+                    ],
+                    "data": "[具体数据行]",
+                    "title": "大区直播观看数据统计"
+                }
+            }
+        },
+        "title": "南部大区本周科技营销总结（2025-11-13 - 2025-11-20）"
+    }
+}

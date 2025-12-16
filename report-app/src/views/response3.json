@@ -1,0 +1,173 @@
+{
+    "msg": "操作成功",
+    "code": 200,
+    "data": {
+        "content": {
+            "ai_sales_assistant": {
+                "business_units_3_2": {
+                    "highest_registered_untrusted": "",
+                    "highest_uncompleted_middle_library": "",
+                    "highest_unregistered": "",
+                    "lowest_wechat_trusteeship": ""
+                },
+                "general_manager_teams_3_3": {
+                    "highest_registered_untrusted": "",
+                    "highest_uncompleted_middle_library": "",
+                    "highest_unregistered": "",
+                    "lowest_wechat_trusteeship": ""
+                },
+                "section_3_1": {
+                    "activation": "",
+                    "middle_library_id": "",
+                    "overall": ""
+                },
+                "table_3_1": {
+                    "columns": [
+                        "事业部",
+                        "微信托管数",
+                        "注册未托管员工数",
+                        "未注册员工数",
+                        "未完成中间库ID填写人数"
+                    ],
+                    "data": [],
+                    "title": "大区销售 AI 助手注册和托管情况"
+                }
+            },
+            "business_opportunity_qr": {
+                "business_units_6_2": {
+                    "lowest_reach": ""
+                },
+                "general_manager_teams_6_3": {
+                    "lowest_reach": ""
+                },
+                "section_6_1": {
+                    "overall": ""
+                },
+                "table_6_1": {
+                    "columns": [
+                        "事业部",
+                        "触达客户数"
+                    ],
+                    "data": [],
+                    "title": "大区商机一码通情况"
+                }
+            },
+            "cold_leads": {
+                "business_units": {
+                    "highest_low_view_rate_count": "",
+                    "lowest_view_rate": "",
+                    "remarks": ""
+                },
+                "general_manager_teams": {
+                    "highest_low_view_rate_count": "",
+                    "lowest_view_rate": "",
+                    "remarks": ""
+                },
+                "overall": {
+                    "description": "",
+                    "details": ""
+                },
+                "table_1_1": {
+                    "columns": [
+                        "组织",
+                        "线索人次",
+                        "线索人数",
+                        "分配人次",
+                        "查看人次",
+                        "查看率",
+                        "查看率低于90%人数",
+                        "入库人数",
+                        "入库率"
+                    ],
+                    "data": [],
+                    "title": "冷线索转化数据"
+                }
+            },
+            "customer_radar": {
+                "business_units_4_2": {
+                    "highest_unqualified": "",
+                    "lowest_entrepreneur_ratio": "",
+                    "lowest_per_capita": ""
+                },
+                "general_manager_teams_4_3": {
+                    "highest_unqualified": "",
+                    "lowest_entrepreneur_ratio": "",
+                    "lowest_per_capita": ""
+                },
+                "section_4_1": {
+                    "entrepreneur_customers": "",
+                    "overall": ""
+                },
+                "table_4_1": {
+                    "columns": [
+                        "事业部",
+                        "累计获客数",
+                        "人均获客数",
+                        "企业家获客占比",
+                        "未达标人数"
+                    ],
+                    "data": [],
+                    "title": "找客雷达获客数"
+                }
+            },
+            "hot_leads": {
+                "section_2_1": {
+                    "business_units": "",
+                    "general_manager_teams": "",
+                    "overall": ""
+                },
+                "section_2_2": {
+                    "feedback": "",
+                    "overall": "",
+                    "performance_metrics": {
+                        "low_feedback_rate": "",
+                        "low_view_rate": ""
+                    }
+                },
+                "table_2_1": {
+                    "columns": [
+                        "事业部",
+                        "员工人数",
+                        "6H未查看员工数",
+                        "6H未查看客户数"
+                    ],
+                    "data": [],
+                    "title": "大区热线索 6H 未查看数"
+                },
+                "table_2_2": {
+                    "columns": [
+                        "总经理团队",
+                        "员工人数",
+                        "6H未查看员工数",
+                        "6H未查看客户数"
+                    ],
+                    "data": [],
+                    "title": "专人专线承接名单分配线索情况汇总"
+                }
+            },
+            "live_streaming": {
+                "business_units_5_2": {
+                    "lowest_per_capita_middle_library": ""
+                },
+                "general_manager_teams_5_3": {
+                    "lowest_per_capita_middle_library": ""
+                },
+                "section_5_1": {
+                    "middle_library_viewers": "",
+                    "overall": ""
+                },
+                "table_5_1": {
+                    "columns": [
+                        "事业部",
+                        "观看客户数",
+                        "中间库观看客户数",
+                        "人均中间库观看客户数"
+                    ],
+                    "data": [],
+                    "title": "大区直播观看数据统计"
+                }
+            }
+        },
+        "title": "北部大区本周科技营销总结（2025-11-13-2025-11-20）"
+    }
+}
