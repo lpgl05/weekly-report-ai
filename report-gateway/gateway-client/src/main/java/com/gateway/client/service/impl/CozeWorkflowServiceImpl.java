@@ -57,7 +57,7 @@ public class CozeWorkflowServiceImpl implements ICozeWorkflowService {
             LOG.info("callCozeWorkflow, resp is null");
             return AjaxResult.error("调用Coze工作流失败:resp is null");
         }
-        LOG.info("callCozeWorkflow, resp: {}", JSON.toJSONString(resp));
+        LOG.info("callCozeWorkflow, response successfully.");
         if (null == resp.getCode() || SUCCESS_CODE != resp.getCode().intValue()) {
             LOG.info("callCozeWorkflow, code is {}", resp.getCode());
             return AjaxResult.error("调用Coze工作流失败:code is " + (null == resp.getCode() ? "null" : resp.getCode().intValue()));
@@ -93,7 +93,7 @@ public class CozeWorkflowServiceImpl implements ICozeWorkflowService {
 //            return result;
 //        }
         result.put(AjaxResult.DATA_TAG, output);
-        LOG.info("callCozeWorkflow, result: {}", output);
+        LOG.info("callCozeWorkflow end successfully.");
         return result;
     }
 }

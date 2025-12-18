@@ -42,7 +42,7 @@ public class CozeWorkflowController {
             LOG.error("postCozeWorkflow:调用Coze工作流失败", e);
             ajaxResult = AjaxResult.error("调用Coze工作流失败");
         }
-        LOG.info("postCozeWorkflow:调用Coze工作流结束:{}", ajaxResult);
+        LOG.info("postCozeWorkflow:调用Coze工作流结束, successfully.");
         return ajaxResult;
     }
 }
