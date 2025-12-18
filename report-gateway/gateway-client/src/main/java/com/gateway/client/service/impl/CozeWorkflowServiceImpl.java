@@ -92,6 +92,11 @@ public class CozeWorkflowServiceImpl implements ICozeWorkflowService {
 //        if (!result.isSuccess()) {
 //            return result;
 //        }
+        if (output.trim().isEmpty()) {
+            LOG.info("callCozeWorkflow end failed");
+        } else {
+            LOG.info("callCozeWorkflow end successfully.");
+        }
         result.put(AjaxResult.DATA_TAG, output);
         LOG.info("callCozeWorkflow end successfully.");
         return result;
