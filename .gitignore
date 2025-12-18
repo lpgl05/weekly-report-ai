@@ -1,0 +1,85 @@
+# Common .gitignore for this workspace (Node/Vite + Java/Maven + IDEs)
+
+# Node / JavaScript
+node_modules/
+/dist/
+/build/
+/out/
+/.vite/
+/.parcel-cache/
+/.turbo/
+
+# Environment files
+.env
+.env.*.local
+.env.local
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Dependency lock files (usually keep, uncomment to ignore if desired)
+# package-lock.json
+# yarn.lock
+# pnpm-lock.yaml
+
+# Testing / Coverage
+coverage/
+.nyc_output/
+jest-cache/
+/playwright-report/
+/test-results/
+
+# Vite / TypeScript
+*.tsbuildinfo
+dist/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDEs
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.iml
+*.idea/
+out/
+
+# Java / Maven
+**/target/
+*.class
+*.jar
+*.war
+*.ear
+.mvn/
+mvnw
+mvnw.cmd
+
+# Build artifacts
+*.log
+*.tmp
+*.temp
+
+# Misc
+*.env
+*.local
+*.cache
+
+# Optional: lock files for package managers (if you want to ignore them, uncomment)
+# .pnp/
+# .pnp.js
+
+# Local editor history
+.history/
+
+# Workspace / project specific
+
+
+# End of file
