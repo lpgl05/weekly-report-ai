@@ -9,7 +9,7 @@ sys:
         secret-token: sat_VNFadYnJTfGiBwnNUJEJlLXPiLJu6WKt7c22MPHy70fGYfYGZJOkBGScT8irqH6t
         url: https://api.coze.cn
         connect-timeout: 10000
-        read-timeout: 610000
+        read-timeout: 1200000
         time-span: 7
 
 spring:
