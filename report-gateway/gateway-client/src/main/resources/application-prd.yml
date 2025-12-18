@@ -4,9 +4,9 @@ sys:
         app-secret: X5iNGcV4XZXehIQ4Tr0ZhhvxDpKBzynl
     coze:
         agent-name: 天九科技营销周报
-        workflow-id: 7579641500927442954
-        app-id: 7578779036689088546
-        secret-token: sat_lYUYfkyZFMSnh8iV6H1oE0XS8aTIMKGhgnHrsuRMQeSSnlcsrTKQxWScYbxdqEQW
+        workflow-id: 7582622131902906408
+        app-id: 7582564227828138024
+        secret-token: sat_VNFadYnJTfGiBwnNUJEJlLXPiLJu6WKt7c22MPHy70fGYfYGZJOkBGScT8irqH6t
         url: https://api.coze.cn
         connect-timeout: 10000
         read-timeout: 610000

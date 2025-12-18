@@ -153,7 +153,7 @@ const submitToBackend = () => {
 
   axios
     // .post('http://192.168.0.100:9696/api/upload', formData, {
-    .post('/api/upload', formData, {
+    .post('http://127.0.0.1:9696/api/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
       // onUploadProgress: (progressEvent) => {
       //   if (progressEvent.total) {
@@ -190,7 +190,7 @@ const submitRegionData = (region) => {
 
   return axios
     // .post('http://192.168.0.100:9696/api/generate-report', formData, {
-    .post('/api/generate-report', formData, {
+    .post('http://127.0.0.1:9696/api/generate-report', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
     .then((response) => {
