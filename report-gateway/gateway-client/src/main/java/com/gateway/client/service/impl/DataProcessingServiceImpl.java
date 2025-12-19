@@ -43,7 +43,7 @@ public class DataProcessingServiceImpl implements IDataProcessingService {
         put("观看直播统计.xlsx", "DggJsn4LbhHibytSgHsc1Im0n4e");
         put("冷线索.xlsx", "ZCF0spcQehqKDItr1r2cr6pxnud");
         put("冷线索添加标签和填写跟进总数.xlsx", "XtkxsmOj7hi21UtA8mGc9857n8f");
-        put("南区热线索未读.xlsx", "R9KJsCb4Mh0CvUtcsEscHbtdnyh");
+        put("大区热线索未读.xlsx", "R9KJsCb4Mh0CvUtcsEscHbtdnyh");
         put("商机一码通.xlsx", "OcCSsuNZ4hYGGYtdGhgcBTZ1nxc");
         put("团队看板（员工数）.xlsx", "ZkjEscPeshQgArt5Pq7ceb8anPf");
         put("销售AI助手-托管数据.xlsx", "EXEAs18NGhdN1ytf6lpc6kETnVf");
@@ -52,6 +52,9 @@ public class DataProcessingServiceImpl implements IDataProcessingService {
         put("找客雷达（考核月数据）.xlsx", "TuG5sh8zOhKEeJtuunhcEXTKnTb");
         put("中间库id填写情况.xlsx", "Cxz6s0WpIh9wr1t9MnFcp4LFnBc");
         put("中间库客户.xlsx", "F31hsRl42hhUXltIwDecDDE8nLz");
+        put("本周新增热线索首次参会及成交.xlsx", "GZNZsG7MlhhX8dt4ZHYcv5KanuH");
+        put("累计热线索首次参会及成交.xlsx", "CDoWshU47hYJcTtxcfmcLnp0nAg");
+        put("组织架构.xlsx", "QOfCs6sRFhA7yHtZHIucjJmqn4f");
     }};
 
     /**
