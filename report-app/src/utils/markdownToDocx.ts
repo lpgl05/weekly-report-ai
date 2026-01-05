@@ -19,47 +19,142 @@ import {
  * @returns DOCX Document对象
  */
 export function convertMarkdownToDocx(markdownContent: string): Document {
-  // 解析markdown为tokens
-  const tokens = marked.lexer(markdownContent)
-  const children: any[] = []
-
-  for (const token of tokens) {
-    switch (token.type) {
-      case 'heading':
-        children.push(createHeadingParagraph(token.text, token.depth))
-        break
-      case 'paragraph':
-        children.push(createParagraph(token.text))
-        break
-      case 'list':
-        children.push(...createList(token))
-        break
-      case 'table':
-        children.push(createTable(token))
-        break
-      case 'blockquote':
-        children.push(createBlockquote(token.text))
-        break
-      case 'code':
-        children.push(createCodeBlock(token.text))
-        break
-      case 'hr':
-        children.push(createHorizontalRule())
-        break
-      default:
-        // 对于未处理的类型，转换为普通段落
-        if (token.raw && token.raw.trim()) {
-          children.push(createParagraph(token.raw))
+  try {
+    console.log('开始转换markdown:', markdownContent.substring(0, 100))
+    
+    // 使用更简单的方式直接解析markdown文本
+    const children: any[] = []
+    const lines = markdownContent.split('\n')
+    
+    for (let i = 0; i < lines.length; i++) {
+      const line = lines[i].trim()
+      
+      if (line === '') {
+        // 空行
+        children.push(new Paragraph({ text: "" }))
+        continue
+      }
+      
+      // 标题处理
+      if (line.indexOf('# ') === 0) {
+        children.push(new Paragraph({
+          text: line.substring(2),
+          heading: HeadingLevel.HEADING_1,
+        }))
+      } else if (line.indexOf('## ') === 0) {
+        children.push(new Paragraph({
+          text: line.substring(3),
+          heading: HeadingLevel.HEADING_2,
+        }))
+      } else if (line.indexOf('### ') === 0) {
+        children.push(new Paragraph({
+          text: line.substring(4),
+          heading: HeadingLevel.HEADING_3,
+        }))
+      } else if (line.indexOf('#### ') === 0) {
+        children.push(new Paragraph({
+          text: line.substring(5),
+          heading: HeadingLevel.HEADING_4,
+        }))
+      }
+      // 水平线
+      else if (line.indexOf('---') === 0 || line.indexOf('___') === 0) {
+        children.push(new Paragraph({
+          text: "────────────────────────────────────",
+          alignment: AlignmentType.CENTER,
+        }))
+      }
+      // 列表处理
+      else if (line.indexOf('- ') === 0) {
+        children.push(new Paragraph({
+          text: `• ${line.substring(2)}`,
+          indent: {
+            left: 360,
+          },
+        }))
+      } else if (line.indexOf('1. ') === 0 || /^\d+\.\s/.test(line)) {
+        children.push(new Paragraph({
+          text: line,
+          indent: {
+            left: 360,
+          },
+        }))
+      }
+      // 引用
+      else if (line.indexOf('> ') === 0) {
+        children.push(new Paragraph({
+          text: `❝ ${line.substring(2)}`,
+          indent: {
+            left: 360,
+          },
+        }))
+      }
+      // 代码块
+      else if (line.indexOf('```') === 0) {
+        // 跳过代码块的开始和结束标记
+        if (line === '```' || line.indexOf('```') === 0) {
+          continue
         }
+      }
+      // 表格处理（简单版本）
+      else if (line.indexOf('|') > 0) {
+        const cells = line.split('|').map(cell => cell.trim()).filter(cell => cell !== '')
+        if (cells.length > 0) {
+          children.push(new Paragraph({
+            text: cells.join(' | '),
+          }))
+        }
+      }
+      // 普通段落
+      else {
+        // 处理粗体和斜体
+        let processedText = line
+        const runs = parseInlineFormats(processedText)
+        
+        if (runs.length > 1) {
+          children.push(new Paragraph({
+            children: runs,
+          }))
+        } else {
+          children.push(new Paragraph({
+            text: stripMarkdown(processedText),
+          }))
+        }
+      }
     }
-  }
 
-  return new Document({
-    sections: [{
-      properties: {},
-      children: children.length > 0 ? children : [new Paragraph({ text: "暂无内容" })],
-    }],
-  })
+    console.log('转换完成，生成了', children.length, '个段落')
+    
+    return new Document({
+      sections: [{
+        properties: {},
+        children: children.length > 0 ? children : [new Paragraph({ text: "暂无内容" })],
+      }],
+    })
+  } catch (error) {
+    console.error('转换markdown失败:', error)
+    // 返回一个基本的错误文档
+    return new Document({
+      sections: [{
+        properties: {},
+        children: [
+          new Paragraph({
+            text: "文档转换失败",
+            heading: HeadingLevel.HEADING_1,
+          }),
+          new Paragraph({
+            text: `错误信息: ${error instanceof Error ? error.message : '未知错误'}`,
+          }),
+          new Paragraph({
+            text: "原始内容:",
+          }),
+          new Paragraph({
+            text: markdownContent.substring(0, 500),
+          }),
+        ],
+      }],
+    })
+  }
 }
 
 /**
@@ -258,6 +353,18 @@ function parseInlineFormats(text: string): TextRun[] {
   })
   
   return runs.length > 0 ? runs : [new TextRun({ text })]
+}
+
+/**
+ * 移除简单的markdown标记
+ */
+function stripMarkdown(text: string): string {
+  return text
+    .replace(/\*\*(.*?)\*\*/g, '$1') // 移除粗体标记
+    .replace(/\*(.*?)\*/g, '$1')     // 移除斜体标记
+    .replace(/`(.*?)`/g, '$1')       // 移除代码标记
+    .replace(/\[(.*?)\]\(.*?\)/g, '$1') // 移除链接，保留文本
+    .trim()
 }
 
 /**

@@ -115,6 +115,15 @@
                 加载测试内容
               </button>
               
+              <!-- 简单测试按钮 -->
+              <button 
+                @click="downloadSimpleTest"
+                class="btn-secondary w-full text-sm"
+              >
+                <el-icon class="mr-2"><Document /></el-icon>
+                下载简单测试文档
+              </button>
+              
               <button 
                 @click="downloadReport" 
                 :disabled="downloading || !selectedFormat"
@@ -203,6 +212,7 @@ import html2pdf from 'html2pdf.js'
 import { Packer } from 'docx'
 import { convertMarkdownToDocx } from '@/utils/markdownToDocx'
 import { testMarkdownContent } from '@/utils/testMarkdownContent'
+import { simpleMarkdownToDocx, createTestDocument } from '@/utils/simpleDocxConverter'
 
 interface DownloadHistoryItem {
   id: string
@@ -414,28 +424,33 @@ const generatePDF = async (): Promise<Blob> => {
 
 const generateDOCX = async (): Promise<Blob> => {
   try {
-    // 检查reportContent是否包含markdown格式内容
+    console.log('开始生成DOCX...')
+    
+    // 检查reportContent是否包含内容
     if (!reportContent.value || reportContent.value.trim() === '') {
+      console.error('报告内容为空')
       throw new Error('报告内容为空')
     }
     
-    // 如果内容是HTML格式，先转换为markdown
-    let markdownContent = reportContent.value
+    console.log('报告内容类型:', typeof reportContent.value)
+    console.log('报告内容长度:', reportContent.value.length)
+    console.log('报告内容预览:', reportContent.value.substring(0, 200))
     
-    // 简单的HTML到markdown的转换（如果需要更复杂的转换可以使用turndown库）
-    if (reportContent.value.includes('<') && reportContent.value.includes('>')) {
-      markdownContent = convertHtmlToMarkdown(reportContent.value)
-    }
+    // 使用简化的转换器进行测试
+    console.log('使用简化转换器...')
+    const doc = simpleMarkdownToDocx(reportContent.value)
+    console.log('简化转换器执行完成')
     
-    // 使用markdownToDocx工具函数转换
-    const doc = convertMarkdownToDocx(markdownContent)
+    console.log('开始生成blob...')
+    const blob = await Packer.toBlob(doc)
+    console.log('blob生成完成，大小:', blob.size)
     
-    return await Packer.toBlob(doc)
+    return blob
   } catch (error) {
     console.error('DOCX生成失败:', error)
-    // 如果转换失败，返回一个基本的文档
-    const fallbackDoc = convertMarkdownToDocx(`# ${fileName.value}\n\n报告内容生成失败，请重试。`)
-    return await Packer.toBlob(fallbackDoc)
+    // 如果转换失败，生成一个简单的错误文档
+    const errorDoc = createTestDocument()
+    return await Packer.toBlob(errorDoc)
   }
 }
 
@@ -565,6 +580,35 @@ const convertHtmlToMarkdown = (html: string): string => {
 const loadTestContent = () => {
   reportContent.value = testMarkdownContent
   fileName.value = 'Markdown转Word测试文档'
+}
+
+const downloadSimpleTest = async () => {
+  downloading.value = true
+  try {
+    console.log('开始下载简单测试文档...')
+    
+    const doc = createTestDocument()
+    console.log('测试文档创建完成')
+    
+    const blob = await Packer.toBlob(doc)
+    console.log('blob生成完成，大小:', blob.size)
+    
+    // 触发下载
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = '简单测试文档.docx'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    
+    console.log('下载触发完成')
+  } catch (error) {
+    console.error('简单测试下载失败:', error)
+  } finally {
+    downloading.value = false
+  }
 }
 
 const addToDownloadHistory = (name: string, format: string) => {
