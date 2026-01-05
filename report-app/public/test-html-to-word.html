@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HTML到Word转换测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        .test-content {
+            border: 1px solid #ccc;
+            padding: 20px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+<body>
+    <h1>HTML到Word转换测试</h1>
+    
+    <div id="report-content" class="test-content">
+        <h2>营销智能化周报</h2>
+        <p>生成时间：2024年1月15日</p>
+        
+        <h3>1. 冷线索转化数据（表 1-1）</h3>
+        <table>
+            <thead>
+                <tr>
+                    <th>组织</th>
+                    <th>线索人次</th>
+                    <th>线索人数</th>
+                    <th>转化率</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>西南事业部</td>
+                    <td>120</td>
+                    <td>85</td>
+                    <td>70.8%</td>
+                </tr>
+                <tr>
+                    <td>成渝事业部</td>
+                    <td>95</td>
+                    <td>72</td>
+                    <td>75.8%</td>
+                </tr>
+            </tbody>
+        </table>
+        
+        <h3>2. 重点关注指标</h3>
+        <ul>
+            <li>线索转化率持续提升</li>
+            <li>客户满意度达到95%</li>
+            <li>平均响应时间缩短至2小时</li>
+        </ul>
+        
+        <p>本周表现<strong>优秀</strong>，各项指标均有<em>显著提升</em>。</p>
+    </div>
+    
+    <button onclick="downloadAsWord()">下载为Word文档</button>
+    <button onclick="testConversion()">测试转换</button>
+    
+    <script type="module">
+        import { parseHTMLToDocx } from '/src/utils/htmlToDocx.ts';
+        
+        window.downloadAsWord = async function() {
+            try {
+                console.log('开始测试HTML到Word转换...');
+                
+                const reportContainer = document.getElementById('report-content');
+                const htmlContent = reportContainer.innerHTML;
+                
+                console.log('HTML内容:', htmlContent);
+                
+                // 动态导入docx库
+                const { Document, Paragraph, Packer, HeadingLevel, Table, TableRow, TableCell, WidthType, BorderStyle, TextRun } = await import('docx');
+                
+                const doc = parseHTMLToDocx(htmlContent, {
+                    Document, Paragraph, Packer, HeadingLevel, Table, TableRow, TableCell, WidthType, BorderStyle, TextRun
+                });
+                
+                const blob = await Packer.toBlob(doc);
+                
+                // 下载文件
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = '测试报告.docx';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+                
+                console.log('转换成功！');
+            } catch (error) {
+                console.error('转换失败:', error);
+                alert('转换失败: ' + error.message);
+            }
+        }
+        
+        window.testConversion = function() {
+            const reportContainer = document.getElementById('report-content');
+            const htmlContent = reportContainer.innerHTML;
+            console.log('HTML内容长度:', htmlContent.length);
+            console.log('HTML预览:', htmlContent.substring(0, 500));
+        }
+    </script>
+</body>
+</html>

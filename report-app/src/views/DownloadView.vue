@@ -115,13 +115,32 @@
                 加载测试内容
               </button>
               
-              <!-- 简单测试按钮 -->
+              <!-- 纯文本测试按钮 -->
               <button 
                 @click="downloadSimpleTest"
                 class="btn-secondary w-full text-sm"
               >
                 <el-icon class="mr-2"><Document /></el-icon>
-                下载简单测试文档
+                下载纯文本测试
+              </button>
+              
+              <!-- HTML到Word调试按钮 -->
+              <button 
+                @click="debugHTMLToWord"
+                class="btn-secondary w-full text-sm"
+                :disabled="downloading"
+              >
+                <el-icon class="mr-2"><Document /></el-icon>
+                {{ downloading ? '处理中...' : '调试HTML转Word' }}
+              </button>
+              
+              <!-- docx测试按钮 -->
+              <button 
+                @click="downloadSimpleDocx"
+                class="btn-secondary w-full text-sm"
+              >
+                <el-icon class="mr-2"><Document /></el-icon>
+                下载Word测试
               </button>
               
               <button 
@@ -209,10 +228,9 @@
 import { ref, onMounted } from 'vue'
 import jsPDF from 'jspdf'
 import html2pdf from 'html2pdf.js'
-import { Packer } from 'docx'
 import { convertMarkdownToDocx } from '@/utils/markdownToDocx'
 import { testMarkdownContent } from '@/utils/testMarkdownContent'
-import { simpleMarkdownToDocx, createTestDocument } from '@/utils/simpleDocxConverter'
+import { parseHTMLToDocx, parseMarkdownToDocx } from '@/utils/htmlToDocx'
 
 interface DownloadHistoryItem {
   id: string
@@ -436,21 +454,43 @@ const generateDOCX = async (): Promise<Blob> => {
     console.log('报告内容长度:', reportContent.value.length)
     console.log('报告内容预览:', reportContent.value.substring(0, 200))
     
-    // 使用简化的转换器进行测试
-    console.log('使用简化转换器...')
-    const doc = simpleMarkdownToDocx(reportContent.value)
-    console.log('简化转换器执行完成')
+    // 动态导入docx库
+    console.log('正在导入docx库...')
+    const { Document, Paragraph, Packer, HeadingLevel, Table, TableRow, TableCell, WidthType, BorderStyle, TextRun } = await import('docx')
+    console.log('docx库导入成功')
     
-    console.log('开始生成blob...')
-    const blob = await Packer.toBlob(doc)
-    console.log('blob生成完成，大小:', blob.size)
+    // 检查内容是否是HTML格式
+    const isHTML = reportContent.value.includes('<') && reportContent.value.includes('>')
+    console.log('内容是HTML格式:', isHTML)
     
-    return blob
+    let processedContent = reportContent.value
+    
+    if (isHTML) {
+      // 如果是HTML，直接解析HTML内容
+      console.log('解析HTML内容...')
+      const doc = parseHTMLToDocx(reportContent.value, { Document, Paragraph, Packer, HeadingLevel, Table, TableRow, TableCell, WidthType, BorderStyle, TextRun })
+      console.log('HTML解析完成')
+      
+      const blob = await Packer.toBlob(doc)
+      console.log('blob生成完成，大小:', blob.size)
+      return blob
+    } else {
+      // 如果是markdown，使用原有逻辑
+      console.log('处理Markdown内容...')
+      const doc = parseMarkdownToDocx(processedContent, { Document, Paragraph, Packer, HeadingLevel, Table, TableRow, TableCell, WidthType, BorderStyle, TextRun })
+      
+      const blob = await Packer.toBlob(doc)
+      console.log('blob生成完成，大小:', blob.size)
+      return blob
+    }
+    
   } catch (error) {
     console.error('DOCX生成失败:', error)
-    // 如果转换失败，生成一个简单的错误文档
-    const errorDoc = createTestDocument()
-    return await Packer.toBlob(errorDoc)
+    console.error('错误详情:', error.message)
+    
+    // 生成一个纯文本的错误文档作为fallback
+    const errorText = `Word文档生成失败\n\n错误信息: ${error instanceof Error ? error.message : '未知错误'}\n\n原始内容:\n${reportContent.value || '无内容'}`
+    return new Blob([errorText], { type: 'text/plain;charset=utf-8' })
   }
 }
 
@@ -577,35 +617,256 @@ const convertHtmlToMarkdown = (html: string): string => {
   return markdown.trim()
 }
 
+// 创建Word表格的辅助函数
+const createWordTable = (tableLines, docxClasses) => {
+  const { Table, TableRow, TableCell, Paragraph, WidthType, BorderStyle } = docxClasses
+  
+  console.log('开始创建Word表格，行数:', tableLines.length)
+  
+  const rows = []
+  
+  tableLines.forEach((line, index) => {
+    // 分割单元格，移除首尾的空白分隔符
+    const cells = line.split('|')
+      .map(cell => cell.trim())
+      .filter(cell => cell !== '')
+    
+    console.log(`第${index + 1}行，单元格数量:`, cells.length, '内容:', cells)
+    
+    if (cells.length > 0) {
+      const tableCells = cells.map(cellContent => 
+        new TableCell({
+          children: [new Paragraph({
+            text: cellContent || ' ', // 空单元格用空格填充
+          })],
+          width: {
+            size: Math.floor(100 / cells.length), // 平均分配宽度
+            type: WidthType.PERCENTAGE,
+          },
+        })
+      )
+      
+      rows.push(new TableRow({
+        children: tableCells,
+      }))
+    }
+  })
+  
+  console.log('表格行创建完成，总行数:', rows.length)
+  
+  return new Table({
+    rows: rows,
+    width: {
+      size: 100,
+      type: WidthType.PERCENTAGE,
+    },
+    borders: {
+      top: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
+      bottom: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
+      left: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
+      right: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
+      insideHorizontal: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
+      insideVertical: { style: BorderStyle.SINGLE, size: 1, color: '000000' },
+    },
+  })
+}
+
 const loadTestContent = () => {
-  reportContent.value = testMarkdownContent
-  fileName.value = 'Markdown转Word测试文档'
+  reportContent.value = `# 天九科技营销智能化周报
+
+**报告周期：** 2024年1月1日 - 2024年1月7日
+
+## 一、冷线索
+
+### 1. 整体
+本周中部大区共计领取+分配 15379 次冷线索，查看 11910 人次，查看率 77.44%，查看率<90%人数 114 人。
+
+### 2. 事业部数据
+
+冷线索转化数据（表 1-1）：
+| 组织 | 线索人次 | 线索人数 | 分配人次 | 查看人次 | 查看率 | 查看率低于90%人数 | 入库人数 | 入库率 |
+|------|----------|----------|----------|----------|--------|-------------------|----------|--------|
+| A事业部 | 20 | 15 | 20 | 14 | 70.00% | 6 | 3 | 20.00% |
+| B事业部 | 30 | 25 | 30 | 22 | 73.33% | 10 | 5 | 20.00% |
+| C团队（甲地） | 15 | 12 | 15 | 11 | 73.33% | 3 | 2 | 16.67% |
+| D团队（乙地） | 15 | 13 | 15 | 12 | 80.00% | 8 | 3 | 23.08% |
+
+### 3. 分析总结
+
+- 查看率最低：A事业部（70.00%）
+- 查看率<90%人数最高：B事业部（10人）
+- 月累计填写跟进备注最少：C团队（甲地）（3条）
+
+## 二、热线索
+
+### 1. 整体数据
+
+热线索统计表：
+| 事业部 | 热线索数量 | 转化数量 | 转化率 |
+|--------|------------|----------|--------|
+| A事业部 | 50 | 12 | 24.00% |
+| B事业部 | 35 | 8 | 22.86% |
+| C团队 | 28 | 6 | 21.43% |
+
+---
+
+**备注：** 本报告由天九科技营销智能化系统自动生成。
+
+*生成时间：${new Date().toLocaleString('zh-CN')}*`
+  
+  fileName.value = 'Markdown转Word测试文档（含表格）'
 }
 
 const downloadSimpleTest = async () => {
   downloading.value = true
   try {
-    console.log('开始下载简单测试文档...')
+    console.log('开始下载纯文本测试文档...')
     
-    const doc = createTestDocument()
-    console.log('测试文档创建完成')
+    // 创建一个简单的文本内容
+    const testContent = `这是一个测试文档
+生成时间：${new Date().toLocaleString('zh-CN')}
+测试内容：
+1. 第一行测试内容
+2. 第二行测试内容
+3. 第三行测试内容
+
+如果您能下载到这个文本文件，说明下载机制正常工作。`
     
-    const blob = await Packer.toBlob(doc)
-    console.log('blob生成完成，大小:', blob.size)
+    // 直接创建文本blob
+    const blob = new Blob([testContent], { type: 'text/plain;charset=utf-8' })
+    console.log('文本blob创建完成，大小:', blob.size)
     
     // 触发下载
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = '简单测试文档.docx'
+    a.download = '纯文本测试.txt'
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
     URL.revokeObjectURL(url)
     
-    console.log('下载触发完成')
+    console.log('文本下载触发完成')
   } catch (error) {
-    console.error('简单测试下载失败:', error)
+    console.error('文本测试下载失败:', error)
+  } finally {
+    downloading.value = false
+  }
+}
+
+// HTML到Word转换调试函数
+const debugHTMLToWord = async (): Promise<void> => {
+  downloading.value = true
+  try {
+    console.log('=== 开始调试HTML到Word转换 ===')
+    
+    // 创建测试HTML内容
+    const testHTML = `
+      <h2>测试报告标题</h2>
+      <p>生成时间：2024年1月15日</p>
+      
+      <h3>冷线索转化数据（表 1-1）</h3>
+      <table>
+        <tr>
+          <th>组织</th>
+          <th>线索人次</th>
+          <th>线索人数</th>
+        </tr>
+        <tr>
+          <td>西南事业部</td>
+          <td>120</td>
+          <td>85</td>
+        </tr>
+        <tr>
+          <td>成渝事业部</td>
+          <td>95</td>
+          <td>72</td>
+        </tr>
+      </table>
+      
+      <h3>总结</h3>
+      <p>本周表现<strong>优秀</strong>，各项指标均有显著提升。</p>
+    `
+    
+    console.log('测试HTML内容:', testHTML)
+    
+    // 动态导入docx库
+    const { Document, Paragraph, Packer, HeadingLevel, Table, TableRow, TableCell, WidthType, BorderStyle, TextRun } = await import('docx')
+    console.log('docx库导入成功')
+    
+    // 使用新的HTML转换器
+    const doc = parseHTMLToDocx(testHTML, {
+      Document, Paragraph, Packer, HeadingLevel, Table, TableRow, TableCell, WidthType, BorderStyle, TextRun
+    })
+    
+    console.log('HTML转换完成')
+    
+    const blob = await Packer.toBlob(doc)
+    console.log('Blob生成完成，大小:', blob.size)
+    
+    // 下载文件
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = '调试测试-HTML到Word.docx'
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+    
+    console.log('=== HTML到Word转换调试完成 ===')
+    
+  } catch (error) {
+    console.error('调试测试失败:', error)
+    alert(`调试测试失败: ${error.message}`)
+  } finally {
+    downloading.value = false
+  }
+}
+
+// 尝试使用docx库的最简单版本
+const downloadSimpleDocx = async () => {
+  downloading.value = true
+  try {
+    console.log('尝试最简单的docx下载...')
+    
+    // 动态导入docx库
+    const { Document, Packer, Paragraph } = await import('docx')
+    console.log('docx库导入成功')
+    
+    // 创建最简单的文档
+    const doc = new Document({
+      sections: [{
+        children: [
+          new Paragraph({
+            text: '这是一个简单的Word文档测试',
+          }),
+          new Paragraph({
+            text: `生成时间：${new Date().toLocaleString('zh-CN')}`,
+          }),
+        ],
+      }],
+    })
+    console.log('文档对象创建成功')
+    
+    const blob = await Packer.toBlob(doc)
+    console.log('docx blob生成完成，大小:', blob.size)
+    
+    // 触发下载
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = '简单Word测试.docx'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+    
+    console.log('docx下载触发完成')
+  } catch (error) {
+    console.error('docx测试下载失败:', error)
+    console.error('错误详情:', error.message)
+    console.error('错误堆栈:', error.stack)
   } finally {
     downloading.value = false
   }

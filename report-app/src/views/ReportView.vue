@@ -90,6 +90,7 @@ import html2pdf from 'html2pdf.js'
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, HeadingLevel, AlignmentType } from 'docx'
 import { saveAs } from 'file-saver'
 import { convertMarkdownToDocx } from '@/utils/markdownToDocx'
+import { parseHTMLToDocx, parseMarkdownToDocx } from '@/utils/htmlToDocx'
 
 import ReportHeader from '@/components/report/ReportHeader.vue'
 import ColdLeadsSection from '@/components/report/ColdLeadsSection.vue'
@@ -321,13 +322,44 @@ const downloadWord = async () => {
   isGenerating.value = true
   
   try {
-    // 使用新的markdown转docx工具
-    const doc = convertMarkdownToDocx(dynamicWeeklyReportContent.value)
+    console.log('开始生成Word文档...')
+    
+    // 获取报告容器的HTML内容
+    const reportContainer = document.getElementById('report-content')
+    if (!reportContainer) {
+      throw new Error('找不到报告内容容器')
+    }
+    
+    const htmlContent = reportContainer.innerHTML
+    console.log('HTML内容长度:', htmlContent.length)
+    console.log('HTML内容预览:', htmlContent.substring(0, 200))
+    
+    // 动态导入docx库
+    const { Document, Paragraph, Packer, HeadingLevel, Table, TableRow, TableCell, WidthType, BorderStyle, TextRun } = await import('docx')
+    
+    // 使用HTML到DOCX的转换器
+    const doc = parseHTMLToDocx(htmlContent, {
+      Document, Paragraph, Packer, HeadingLevel, Table, TableRow, TableCell, WidthType, BorderStyle, TextRun
+    })
+    
+    console.log('文档转换完成，开始生成blob...')
     const blob = await Packer.toBlob(doc)
-    saveAs(blob, `${currentTitle.value}.docx`)
+    
+    // 下载文件
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement('a')
+    link.href = url
+    link.download = `${currentTitle.value}.docx`
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(url)
+    
+    console.log('Word文档下载成功')
+    
   } catch (error) {
     console.error('Word生成失败:', error)
-    alert('Word生成失败，请重试')
+    alert(`Word生成失败: ${error.message}`)
   } finally {
     isGenerating.value = false
   }
