@@ -1,6 +1,7 @@
 package com.gateway.client.web.controller;
 
 import com.gateway.client.service.ICozeWorkflowService;
+import com.gateway.client.service.TaskStatusManager;
 import com.gateway.common.utils.AjaxResult;
 import com.gateway.common.utils.StringUtils;
 import org.slf4j.Logger;
@@ -22,6 +23,9 @@ public class CozeWorkflowController {
     @Autowired
     private ICozeWorkflowService cozeWorkflowService;
 
+    @Autowired
+    private TaskStatusManager taskStatusManager;
+
     @GetMapping("/api/validate")
     public AjaxResult validate() {
         return AjaxResult.success("The system is running!!!!");
@@ -41,6 +45,10 @@ public class CozeWorkflowController {
         } catch (Exception e) {
             LOG.error("postCozeWorkflow:调用Coze工作流失败", e);
             ajaxResult = AjaxResult.error("调用Coze工作流失败");
+        } finally {
+            // 无论成功还是失败，都清除任务状态
+            taskStatusManager.completeTask();
+            LOG.info("postCozeWorkflow:任务状态已清除");
         }
         LOG.info("postCozeWorkflow:调用Coze工作流结束, successfully.");
         return ajaxResult;

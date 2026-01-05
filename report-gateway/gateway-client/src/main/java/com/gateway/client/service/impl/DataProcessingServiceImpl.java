@@ -5,6 +5,7 @@ import com.gateway.client.domain.FeiShuLocalExcelResult;
 import com.gateway.client.domain.FeiShuLocalMergeCell;
 import com.gateway.client.domain.FeiShuSheet;
 import com.gateway.client.service.IDataProcessingService;
+import com.gateway.client.service.TaskStatusManager;
 import com.gateway.common.utils.AjaxResult;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -32,6 +33,9 @@ public class DataProcessingServiceImpl implements IDataProcessingService {
 
     @Autowired
     private DataProcessingExcelServiceImpl excelService;
+
+    @Autowired
+    private TaskStatusManager taskStatusManager;
 
     /**
      * 静态HashSet对象，用于存储允许处理的文件名
@@ -91,6 +95,35 @@ public class DataProcessingServiceImpl implements IDataProcessingService {
      */
     @Override
     public AjaxResult invokeFeiShu(MultipartFile[] files) {
+        return invokeFeiShu(files, "未知区域");
+    }
+
+    /**
+     * 调用飞书接口 - 带区域参数版本
+     * @param files 上传的文件
+     * @param region 区域信息，用于任务状态管理
+     */
+    @Override
+    public AjaxResult invokeFeiShu(MultipartFile[] files, String region) {
+        // 尝试标记任务开始，如果有任务在执行则拒绝
+        if (!taskStatusManager.startTask(region)) {
+            log.warn("invokeFeiShu: 有任务正在执行，拒绝新请求");
+            return AjaxResult.error("系统正在处理其他用户的任务，请稍后再试");
+        }
+
+        try {
+            return invokeFeiShuInternal(files);
+        } finally {
+            // 任务完成，标记任务结束
+            taskStatusManager.completeTask();
+            log.info("invokeFeiShu: 任务完成，任务状态已清除");
+        }
+    }
+
+    /**
+     * 飞书接口调用的内部实现
+     */
+    private AjaxResult invokeFeiShuInternal(MultipartFile[] files) {
         // 创建线程池
         ExecutorService executorService = Executors.newFixedThreadPool(Math.min(files.length, 10));
         try {
