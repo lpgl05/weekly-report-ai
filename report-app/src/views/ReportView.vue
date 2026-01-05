@@ -89,6 +89,7 @@ import { useRouter, useRoute } from 'vue-router'
 import html2pdf from 'html2pdf.js'
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, HeadingLevel, AlignmentType } from 'docx'
 import { saveAs } from 'file-saver'
+import { convertMarkdownToDocx } from '@/utils/markdownToDocx'
 
 import ReportHeader from '@/components/report/ReportHeader.vue'
 import ColdLeadsSection from '@/components/report/ColdLeadsSection.vue'
@@ -315,73 +316,13 @@ const WEEKLY_REPORT_CONTENT1 = `中部大区本周科技营销总结（10.3-10.9
 西南事业部	66
 成渝事业部	66`
 
-// 将文本内容转换为Word文档段落
-const convertTextToWordParagraphs = (text) => {
-  const lines = text.split('\n')
-  const paragraphs = []
-  
-  for (const line of lines) {
-    const trimmedLine = line.trim()
-    
-    if (trimmedLine === '') {
-      // 空行
-      paragraphs.push(new Paragraph({ text: "" }))
-    } else if (trimmedLine.match(/^.+大区本周科技营销总结/)) {
-      // 主标题
-      paragraphs.push(new Paragraph({
-        text: trimmedLine,
-        heading: HeadingLevel.TITLE,
-        alignment: AlignmentType.CENTER,
-      }))
-    } else if (trimmedLine.match(/^\d+\.\s/)) {
-      // 一级标题 (1. 2. 3. ...)
-      paragraphs.push(new Paragraph({
-        text: trimmedLine,
-        heading: HeadingLevel.HEADING_1,
-      }))
-    } else if (trimmedLine.match(/^\d+\.\d+\s/)) {
-      // 二级标题 (1.1 1.2 ...)
-      paragraphs.push(new Paragraph({
-        text: trimmedLine,
-        heading: HeadingLevel.HEADING_2,
-      }))
-    } else if (trimmedLine.match(/^\d+\.\d+\.\d+\s/)) {
-      // 三级标题 (1.1.1 ...)
-      paragraphs.push(new Paragraph({
-        text: trimmedLine,
-        heading: HeadingLevel.HEADING_3,
-      }))
-    } else if (trimmedLine.includes('\t') || trimmedLine.match(/^[^\s]+\s+[^\s]+\s+[^\s]+/)) {
-      // 表格行（包含制表符或多个空格分隔的数据）
-      paragraphs.push(new Paragraph({
-        text: trimmedLine,
-        style: "TableText",
-      }))
-    } else {
-      // 普通段落
-      paragraphs.push(new Paragraph({
-        text: trimmedLine,
-      }))
-    }
-  }
-  
-  return paragraphs
-}
-
 // Word下载功能
 const downloadWord = async () => {
   isGenerating.value = true
   
   try {
-    const paragraphs = convertTextToWordParagraphs(dynamicWeeklyReportContent.value)
-    
-    const doc = new Document({
-      sections: [{
-        properties: {},
-        children: paragraphs,
-      }],
-    })
-
+    // 使用新的markdown转docx工具
+    const doc = convertMarkdownToDocx(dynamicWeeklyReportContent.value)
     const blob = await Packer.toBlob(doc)
     saveAs(blob, `${currentTitle.value}.docx`)
   } catch (error) {

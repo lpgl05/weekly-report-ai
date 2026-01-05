@@ -106,6 +106,15 @@
 
             <!-- 下载按钮 -->
             <div class="space-y-3">
+              <!-- 测试按钮 -->
+              <button 
+                @click="loadTestContent"
+                class="btn-secondary w-full text-sm"
+              >
+                <el-icon class="mr-2"><Document /></el-icon>
+                加载测试内容
+              </button>
+              
               <button 
                 @click="downloadReport" 
                 :disabled="downloading || !selectedFormat"
@@ -191,7 +200,9 @@
 import { ref, onMounted } from 'vue'
 import jsPDF from 'jspdf'
 import html2pdf from 'html2pdf.js'
-import { Document, Packer, Paragraph, TextRun, HeadingLevel } from 'docx'
+import { Packer } from 'docx'
+import { convertMarkdownToDocx } from '@/utils/markdownToDocx'
+import { testMarkdownContent } from '@/utils/testMarkdownContent'
 
 interface DownloadHistoryItem {
   id: string
@@ -221,107 +232,101 @@ const pageSettings = ref<PageSettings>({
 // 模拟报告内容（实际应该从生成页面传递过来）
 onMounted(() => {
   // 模拟从localStorage或路由参数获取生成的报告内容
-  reportContent.value = `
-    <h1>天九科技营销智能化周报</h1>
-    <p><strong>报告周期：</strong> 2024年1月1日 - 2024年1月7日</p>
-    <p><strong>部门：</strong> 市场营销部</p>
-    <p><strong>负责人：</strong> 张三</p>
-    <p><strong>生成时间：</strong> ${new Date().toLocaleString('zh-CN')}</p>
-    
-    <hr>
-    
-    <h2>📊 核心数据概览</h2>
-    
-    <h3>销售业绩</h3>
-    <ul>
-      <li><strong>总销售额：</strong> ¥150,000</li>
-      <li><strong>新增客户：</strong> 360人</li>
-      <li><strong>平均转化率：</strong> 15.0%</li>
-    </ul>
-    
-    <h3>营销活动效果</h3>
-    <ul>
-      <li><strong>春节促销：</strong> 投入¥20,000，获客80人，ROI 2.5</li>
-      <li><strong>新品发布：</strong> 投入¥15,000，获客60人，ROI 2.1</li>
-    </ul>
-    
-    <hr>
-    
-    <h2>📈 数据分析</h2>
-    
-    <h3>销售趋势分析</h3>
-    <p>本周销售数据显示稳定的增长态势。通过对比历史数据，我们发现：</p>
-    <ol>
-      <li><strong>销售额表现：</strong>本周总销售额达到¥150,000，符合预期目标</li>
-      <li><strong>客户获取：</strong>新增客户360人，客户质量良好</li>
-      <li><strong>转化效率：</strong>平均转化率15.0%，接近行业平均水平</li>
-    </ol>
-    
-    <h3>营销活动效果评估</h3>
-    <p>本周共执行2项营销活动：</p>
-    
-    <p><strong>1. 春节促销</strong></p>
-    <ul>
-      <li>投入成本：¥20,000</li>
-      <li>获客数量：80人</li>
-      <li>ROI表现：2.5（优秀）</li>
-    </ul>
-    
-    <p><strong>2. 新品发布</strong></p>
-    <ul>
-      <li>投入成本：¥15,000</li>
-      <li>获客数量：60人</li>
-      <li>ROI表现：2.1（良好）</li>
-    </ul>
-    
-    <hr>
-    
-    <h2>🎯 关键洞察</h2>
-    
-    <h3>成功亮点</h3>
-    <ol>
-      <li><strong>数据驱动决策：</strong>通过数据分析，我们识别出了高价值客户群体</li>
-      <li><strong>营销效率提升：</strong>营销活动执行顺利，达到预期效果</li>
-      <li><strong>客户体验优化：</strong>转化率稳步提升，客户满意度持续改善</li>
-    </ol>
-    
-    <h3>改进机会</h3>
-    <ol>
-      <li><strong>渠道优化：</strong>建议加大对高转化率渠道的投入</li>
-      <li><strong>客户细分：</strong>进一步细化客户画像，提升精准营销效果</li>
-      <li><strong>数据整合：</strong>完善数据收集体系，提高分析准确性</li>
-    </ol>
-    
-    <hr>
-    
-    <h2>📋 下周行动计划</h2>
-    
-    <h3>重点任务</h3>
-    <ol>
-      <li><strong>优化营销策略：</strong>基于本周数据调整营销投入分配</li>
-      <li><strong>客户跟进：</strong>对新增客户进行深度跟进，提升留存率</li>
-      <li><strong>数据监控：</strong>建立实时数据监控体系，及时发现问题</li>
-    </ol>
-    
-    <h3>资源需求</h3>
-    <ul>
-      <li>营销预算：建议增加15000元用于高效渠道投入</li>
-      <li>人员配置：考虑增加客户服务人员，提升客户体验</li>
-      <li>技术支持：完善数据分析工具，提高决策效率</li>
-    </ul>
-    
-    <hr>
-    
-    <h2>📞 联系信息</h2>
-    
-    <p><strong>报告负责人：</strong> 张三</p>
-    <p><strong>部门：</strong> 市场营销部</p>
-    <p><strong>联系方式：</strong> [请填写联系方式]</p>
-    
-    <hr>
-    
-    <p><em>本报告由天九科技营销智能化系统自动生成，数据来源于销售数据.xlsx、营销活动.csv等业务系统。</em></p>
-  `
+  // 使用markdown格式来测试转换功能
+  reportContent.value = `# 天九科技营销智能化周报
+
+**报告周期：** 2024年1月1日 - 2024年1月7日
+
+**部门：** 市场营销部
+
+**负责人：** 张三
+
+**生成时间：** ${new Date().toLocaleString('zh-CN')}
+
+---
+
+## 📊 核心数据概览
+
+### 销售业绩
+
+- **总销售额：** ¥150,000
+- **新增客户：** 360人
+- **平均转化率：** 15.0%
+
+### 营销活动效果
+
+- **春节促销：** 投入¥20,000，获客80人，ROI 2.5
+- **新品发布：** 投入¥15,000，获客60人，ROI 2.1
+
+---
+
+## 📈 数据分析
+
+### 销售趋势分析
+
+本周销售数据显示稳定的增长态势。通过对比历史数据，我们发现：
+
+1. **销售额表现：**本周总销售额达到¥150,000，符合预期目标
+2. **客户获取：**新增客户360人，客户质量良好
+3. **转化效率：**平均转化率15.0%，接近行业平均水平
+
+### 营销活动效果评估
+
+本周共执行2项营销活动：
+
+**1. 春节促销**
+
+- 投入成本：¥20,000
+- 获客数量：80人
+- ROI表现：2.5（优秀）
+
+**2. 新品发布**
+
+- 投入成本：¥15,000
+- 获客数量：60人
+- ROI表现：2.1（良好）
+
+---
+
+## 🎯 关键洞察
+
+### 成功亮点
+
+1. **数据驱动决策：**通过数据分析，我们识别出了高价值客户群体
+2. **营销效率提升：**营销活动执行顺利，达到预期效果
+3. **客户体验优化：**转化率稳步提升，客户满意度持续改善
+
+### 改进机会
+
+1. **渠道优化：**建议加大对高转化率渠道的投入
+2. **客户细分：**进一步细化客户画像，提升精准营销效果
+3. **数据整合：**完善数据收集体系，提高分析准确性
+
+---
+
+## 📋 下周行动计划
+
+### 重点任务
+
+1. **市场调研：**深入了解目标客户需求
+2. **渠道拓展：**开拓新的营销渠道
+3. **数据分析：**完善数据收集和分析体系
+
+### 预期成果
+
+| 任务 | 负责人 | 完成时间 | 预期结果 |
+|------|--------|----------|----------|
+| 市场调研 | 李四 | 1月15日 | 调研报告 |
+| 渠道拓展 | 王五 | 1月20日 | 新增2个渠道 |
+| 数据分析 | 张三 | 1月18日 | 分析工具 |
+
+---
+
+> **注意：** 本报告由天九科技营销智能化系统自动生成，数据来源于系统内部统计。如有疑问，请联系数据分析团队。
+
+---
+
+*报告生成时间：${new Date().toISOString()}*`
   
   // 加载下载历史
   loadDownloadHistory()
@@ -408,47 +413,30 @@ const generatePDF = async (): Promise<Blob> => {
 }
 
 const generateDOCX = async (): Promise<Blob> => {
-  // 简化的DOCX生成（实际项目中需要更复杂的HTML到DOCX转换）
-  const doc = new Document({
-    sections: [{
-      properties: {},
-      children: [
-        new Paragraph({
-          text: "天九科技营销智能化周报",
-          heading: HeadingLevel.HEADING_1,
-        }),
-        new Paragraph({
-          children: [
-            new TextRun({
-              text: "本报告由天九科技营销智能化系统自动生成。",
-              break: 1,
-            }),
-            new TextRun({
-              text: `生成时间：${new Date().toLocaleString('zh-CN')}`,
-              break: 1,
-            }),
-          ],
-        }),
-        // 这里应该解析HTML内容并转换为DOCX格式
-        // 为了简化，这里只添加基本内容
-        new Paragraph({
-          text: "核心数据概览",
-          heading: HeadingLevel.HEADING_2,
-        }),
-        new Paragraph({
-          text: "• 总销售额：¥150,000",
-        }),
-        new Paragraph({
-          text: "• 新增客户：360人",
-        }),
-        new Paragraph({
-          text: "• 平均转化率：15.0%",
-        }),
-      ],
-    }],
-  })
-  
-  return Packer.toBlob(doc)
+  try {
+    // 检查reportContent是否包含markdown格式内容
+    if (!reportContent.value || reportContent.value.trim() === '') {
+      throw new Error('报告内容为空')
+    }
+    
+    // 如果内容是HTML格式，先转换为markdown
+    let markdownContent = reportContent.value
+    
+    // 简单的HTML到markdown的转换（如果需要更复杂的转换可以使用turndown库）
+    if (reportContent.value.includes('<') && reportContent.value.includes('>')) {
+      markdownContent = convertHtmlToMarkdown(reportContent.value)
+    }
+    
+    // 使用markdownToDocx工具函数转换
+    const doc = convertMarkdownToDocx(markdownContent)
+    
+    return await Packer.toBlob(doc)
+  } catch (error) {
+    console.error('DOCX生成失败:', error)
+    // 如果转换失败，返回一个基本的文档
+    const fallbackDoc = convertMarkdownToDocx(`# ${fileName.value}\n\n报告内容生成失败，请重试。`)
+    return await Packer.toBlob(fallbackDoc)
+  }
 }
 
 const generateHTML = (): Blob => {
@@ -484,6 +472,99 @@ const generateHTML = (): Blob => {
   `
   
   return new Blob([htmlContent], { type: 'text/html;charset=utf-8' })
+}
+
+// 简单的HTML到Markdown转换函数
+const convertHtmlToMarkdown = (html: string): string => {
+  let markdown = html
+  
+  // 移除HTML注释
+  markdown = markdown.replace(/<!--[\s\S]*?-->/g, '')
+  
+  // 转换标题
+  markdown = markdown.replace(/<h1[^>]*>(.*?)<\/h1>/gi, '# $1\n\n')
+  markdown = markdown.replace(/<h2[^>]*>(.*?)<\/h2>/gi, '## $1\n\n')
+  markdown = markdown.replace(/<h3[^>]*>(.*?)<\/h3>/gi, '### $1\n\n')
+  markdown = markdown.replace(/<h4[^>]*>(.*?)<\/h4>/gi, '#### $1\n\n')
+  markdown = markdown.replace(/<h5[^>]*>(.*?)<\/h5>/gi, '##### $1\n\n')
+  markdown = markdown.replace(/<h6[^>]*>(.*?)<\/h6>/gi, '###### $1\n\n')
+  
+  // 转换段落
+  markdown = markdown.replace(/<p[^>]*>(.*?)<\/p>/gi, '$1\n\n')
+  
+  // 转换粗体和斜体
+  markdown = markdown.replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**')
+  markdown = markdown.replace(/<b[^>]*>(.*?)<\/b>/gi, '**$1**')
+  markdown = markdown.replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*')
+  markdown = markdown.replace(/<i[^>]*>(.*?)<\/i>/gi, '*$1*')
+  
+  // 转换列表
+  markdown = markdown.replace(/<ul[^>]*>([\s\S]*?)<\/ul>/gi, (match, content) => {
+    return content.replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1\n') + '\n'
+  })
+  markdown = markdown.replace(/<ol[^>]*>([\s\S]*?)<\/ol>/gi, (match, content) => {
+    let counter = 0
+    return content.replace(/<li[^>]*>(.*?)<\/li>/gi, () => {
+      counter++
+      return `${counter}. $1\n`
+    }) + '\n'
+  })
+  
+  // 转换链接
+  markdown = markdown.replace(/<a[^>]*href="([^"]*)"[^>]*>(.*?)<\/a>/gi, '[$2]($1)')
+  
+  // 转换图片
+  markdown = markdown.replace(/<img[^>]*src="([^"]*)"[^>]*alt="([^"]*)"[^>]*\/?>/gi, '![$2]($1)')
+  
+  // 转换换行
+  markdown = markdown.replace(/<br\s*\/?>/gi, '\n')
+  
+  // 转换水平线
+  markdown = markdown.replace(/<hr[^>]*\/?>/gi, '\n---\n')
+  
+  // 转换代码块
+  markdown = markdown.replace(/<pre[^>]*><code[^>]*>([\s\S]*?)<\/code><\/pre>/gi, '```\n$1\n```\n')
+  markdown = markdown.replace(/<code[^>]*>(.*?)<\/code>/gi, '`$1`')
+  
+  // 转换表格（基本支持）
+  markdown = markdown.replace(/<table[^>]*>([\s\S]*?)<\/table>/gi, (match, tableContent) => {
+    let result = ''
+    const rows = tableContent.match(/<tr[^>]*>([\s\S]*?)<\/tr>/gi) || []
+    
+    rows.forEach((row: string, index: number) => {
+      const cells = row.match(/<t[hd][^>]*>([\s\S]*?)<\/t[hd]>/gi) || []
+      const cellTexts = cells.map(cell => cell.replace(/<\/?t[hd][^>]*>/gi, '').trim())
+      result += '| ' + cellTexts.join(' | ') + ' |\n'
+      
+      if (index === 0) {
+        // 添加表头分隔符
+        result += '| ' + cellTexts.map(() => '---').join(' | ') + ' |\n'
+      }
+    })
+    
+    return result + '\n'
+  })
+  
+  // 移除其他HTML标签
+  markdown = markdown.replace(/<[^>]*>/g, '')
+  
+  // 清理HTML实体
+  markdown = markdown.replace(/&nbsp;/g, ' ')
+  markdown = markdown.replace(/&amp;/g, '&')
+  markdown = markdown.replace(/&lt;/g, '<')
+  markdown = markdown.replace(/&gt;/g, '>')
+  markdown = markdown.replace(/&quot;/g, '"')
+  markdown = markdown.replace(/&#39;/g, "'")
+  
+  // 清理多余的空行
+  markdown = markdown.replace(/\n{3,}/g, '\n\n')
+  
+  return markdown.trim()
+}
+
+const loadTestContent = () => {
+  reportContent.value = testMarkdownContent
+  fileName.value = 'Markdown转Word测试文档'
 }
 
 const addToDownloadHistory = (name: string, format: string) => {
