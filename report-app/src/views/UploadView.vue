@@ -137,7 +137,9 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import axios from 'axios';
 import { useUploadStore } from '@/stores/uploadStore'
+import { useTaskStatusStore } from '@/stores/taskStatusStore'
 const uploadStore = useUploadStore()
+const taskStatusStore = useTaskStatusStore()
 
 const router = useRouter()
 
@@ -223,71 +225,17 @@ const formatFileSize = (bytes) => {
 }
 
 // 确认上传
-// const confirmUpload1 = async () => {
-//   if (selectedFiles.value.length === 0 || !selectedRegion.value) {
-//     alert('请选择大区和上传文件')
-//     return
-//   }
-  
-//   isUploading.value = true
-  
-//   // 模拟上传过程
-//   try {
-//     // 这里可以添加实际的文件上传逻辑
-//     console.log('上传大区:', selectedRegion.value)
-//     console.log('上传文件:', selectedFiles.value.map(f => f.name))
-    
-//     await new Promise(resolve => setTimeout(resolve, 2000))
-    
-//     // 跳转到数据处理页面，传递大区信息
-//     router.push({
-//       path: '/process',
-//       query: { region: selectedRegion.value }
-//     })
-//   } catch (error) {
-//     console.error('上传失败:', error)
-//     isUploading.value = false
-//   }
-// }
-// 确认上传
-// const confirmUpload2 = async () => {
-//   if (selectedFiles.value.length === 0 || !selectedRegion.value) return;
-
-//   isUploading.value = true;
-//   const formData = new FormData();
-//   selectedFiles.value.forEach(file => {
-//     formData.append('files', file);
-//   });
-
-//   try {
-//     const response = await axios.post('http://192.168.0.100:9696/api/upload', formData, {
-//       headers: { 'Content-Type': 'multipart/form-data' },
-//       // onUploadProgress: (progressEvent) => {
-//       //   const percentCompleted = Math.round(
-//       //     (progressEvent.loaded * 100) / progressEvent.total
-//       //   );
-//       //   console.log(`上传进度: ${percentCompleted}%`);
-//       // },
-//     });
-
-//     if (response.data.code === 200) {
-//       alert('上传成功！'); 
-//       const result = await submitRegionData(selectedRegion.value);
-//       console.log('提交成功:', result.data);
-//       router.push('/report'); // 跳转到报告页
-//     } else {
-//       alert(`上传失败: ${response.data.msg}`);
-//     }
-//   } catch (error) {
-//     alert('网络错误，请重试');
-//     console.error(error);
-//   } finally {
-//     isUploading.value = false;
-//   }
-// };
-const confirmUpload = () => {
+const confirmUpload = async () => {
   if (selectedFiles.value.length === 0 || !selectedRegion.value) {
     alert('请选择文件和区域')
+    return
+  }
+
+  // 检查是否有任务正在执行
+  const hasRunningTask = await taskStatusStore.checkTaskStatus()
+  
+  if (hasRunningTask) {
+    alert(taskStatusStore.errorMessage)
     return
   }
 
