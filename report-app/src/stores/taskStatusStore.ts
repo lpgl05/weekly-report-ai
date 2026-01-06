@@ -18,7 +18,7 @@ export const useTaskStatusStore = defineStore('taskStatus', () => {
    */
   const checkTaskStatus = async () => {
     try {
-      const response = await axios.get('http://127.0.0.1:9696/api/task/status')
+      const response = await axios.get('http://115.190.64.160/api/task/status')
       
       if (response.data) {
         isTaskRunning.value = response.data.isRunning ?? false
