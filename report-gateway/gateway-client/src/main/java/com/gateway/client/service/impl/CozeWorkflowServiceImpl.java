@@ -16,9 +16,16 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID; 
 
 @Service
 public class CozeWorkflowServiceImpl implements ICozeWorkflowService {
@@ -97,8 +104,22 @@ public class CozeWorkflowServiceImpl implements ICozeWorkflowService {
         } else {
             LOG.info("callCozeWorkflow end successfully.");
         }
+        // Keep original markdown in response data and also save to /tmp
         result.put(AjaxResult.DATA_TAG, output);
-        LOG.info("callCozeWorkflow end successfully.");
+        String tmpDir = "/tmp";
+        String fileName = "coze_report_" + System.currentTimeMillis() + "_" + UUID.randomUUID().toString().substring(0,8) + ".md";
+        Path filePath = Paths.get(tmpDir, fileName);
+        try {
+            Files.createDirectories(Paths.get(tmpDir));
+            Files.write(filePath, output.getBytes(StandardCharsets.UTF_8), StandardOpenOption.CREATE_NEW);
+            // return only the filename to the frontend; frontend will call /api/markdown?file=<fileName>
+            result.put("markdownFile", fileName);
+            LOG.info("callCozeWorkflow end successfully. markdown saved to {}", filePath.toString());
+        } catch (IOException e) {
+            LOG.error("callCozeWorkflow, write markdown file failed", e);
+            // still return the markdown content even if saving failed, but add an error field
+            result.put("markdownFileError", "failed to save markdown file");
+        }
         return result;
     }
 }

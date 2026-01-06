@@ -12,6 +12,15 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestParam;
+
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 
 @RestController
 public class CozeWorkflowController {
@@ -52,5 +61,24 @@ public class CozeWorkflowController {
         }
         LOG.info("postCozeWorkflow:调用Coze工作流结束, successfully.");
         return ajaxResult;
+    }
+
+    @GetMapping("/api/markdown")
+    public ResponseEntity<String> getMarkdown(@RequestParam("file") String file) {
+        if (file == null || file.trim().isEmpty() || !file.matches("^[a-zA-Z0-9._-]+$")) {
+            return ResponseEntity.badRequest().body("invalid file name");
+        }
+        Path path = Paths.get("/tmp", file);
+        if (!Files.exists(path) || !Files.isRegularFile(path)) {
+            return ResponseEntity.status(404).body("file not found");
+        }
+        try {
+            byte[] bytes = Files.readAllBytes(path);
+            String content = new String(bytes, StandardCharsets.UTF_8);
+            return ResponseEntity.ok().contentType(MediaType.TEXT_PLAIN).body(content);
+        } catch (IOException e) {
+            LOG.error("getMarkdown failed", e);
+            return ResponseEntity.status(500).body("failed to read file");
+        }
     }
 }
