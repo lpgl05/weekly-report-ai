@@ -153,7 +153,7 @@ const submitToBackend = () => {
 
   axios
     // .post('http://192.168.0.100:9696/api/upload', formData, {
-    .post('http://127.0.0.1:9696/api/upload', formData, {
+    .post('http://115.190.64.160:9696/api/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
       // onUploadProgress: (progressEvent) => {
       //   if (progressEvent.total) {
@@ -190,13 +190,23 @@ const submitRegionData = (region) => {
 
   return axios
     // .post('http://192.168.0.100:9696/api/generate-report', formData, {
-    .post('http://127.0.0.1:9696/api/generate-report', formData, {
+    .post('http://115.190.64.160:9696/api/generate-report', formData, {
       headers: { 'Content-Type': 'multipart/form-data' },
     })
     .then((response) => {
       if (response.data.code === 200) {
         console.log('提交成功:', response);
-        cozeStore.setCozeJson(response.data.data)
+        const respData = response.data.data
+        // 如果后端返回 markdown 字符串，转换为结构体：{ title, content }
+        if (typeof respData === 'string') {
+          const lines = respData.split('\n')
+          const firstLine = lines.find(l => l.trim().startsWith('# ')) || lines[0] || ''
+          const title = firstLine.replace(/^#\s*/,'').trim()
+          cozeStore.setCozeJson({ title: title || '未命名周报', content: { raw: respData } })
+        } else {
+          cozeStore.setCozeJson(respData)
+        }
+
         router.push('/report'); // 跳转到报告页
         // return response.data; // 成功返回完整响应数据
         clearInterval(timer)

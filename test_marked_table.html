@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Marked 表格测试</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    body { font-family: Arial; padding: 20px; }
+    table { border-collapse: collapse; border: 2px solid #000; margin: 20px 0; }
+    th, td { border: 1px solid #000; padding: 10px; text-align: center; }
+    th { background: #E8E8E8; font-weight: bold; }
+    tr:nth-child(even) { background: #F5F5F5; }
+  </style>
+</head>
+<body>
+  <h2>Markdown 表格测试</h2>
+  <div id="output"></div>
+
+  <script>
+    // 启用 GFM 表格支持
+    marked.setOptions({ gfm: true, breaks: true });
+    
+    const markdown = `
+| 组织 | 线索人次 | 线索人数 | 分配人次 | 查看人次 | 查看率 |
+| :--- | :--- | :--- | :--- | :--- | :--- |
+| 1中部大区 | 15379 | 14713 | 15379 | 11910 | 77.44% |
+| 东南事业部 | 4380 | 4257 | 4380 | 3544 | 80.91% |
+| 中原事业部 | 5299 | 5079 | 5299 | 3884 | 73.3% |
+`;
+
+    const html = marked.parse(markdown);
+    console.log('生成的 HTML:', html);
+    document.getElementById('output').innerHTML = html;
+  </script>
+</body>
+</html>

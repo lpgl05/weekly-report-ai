@@ -22,7 +22,8 @@ public class CorsConfig implements WebMvcConfigurer {
                         "http://127.0.0.1:5173",
                         // 补充：Vite dev 端口占用时会自动切换到 5174
                         "http://localhost:5174",
-                        "http://127.0.0.1:5174"
+                        "http://127.0.0.1:5174",
+                         "http://115.190.64.160:1218"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")

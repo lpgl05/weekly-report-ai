@@ -44,29 +44,8 @@
         <!-- 报告预览区域 -->
         <div class="report-preview">
           <div id="report-content" class="report-container" v-if="isResponseDataLoaded">
-            <!-- 报告头部 -->
-            <ReportHeader :responseData="responseData" @updateDocxContent="updateDocxContent" />
-
-            <!-- 1. 冷线索部分 -->
-            <ColdLeadsSection :responseData="responseData" @updateDocxContent="updateDocxContent" />
-
-            <!-- 2. 热线索部分 -->
-            <HotLeadsSection :responseData="responseData" @updateDocxContent="updateDocxContent" />
-
-            <!-- 3. AI销售助手部分 -->
-            <AiSalesSection :responseData="responseData" @updateDocxContent="updateDocxContent" />
-
-            <!-- 4. 找客雷达获客部分 -->
-            <CustomerAcquisitionSection :responseData="responseData" @updateDocxContent="updateDocxContent" />
-
-            <!-- 5. 直播部分 -->
-            <LiveStreamingSection :responseData="responseData" @updateDocxContent="updateDocxContent" />
-
-            <!-- 6. 商机一码通部分 -->
-            <BusinessOpportunitySection :responseData="responseData" @updateDocxContent="updateDocxContent" />
-
-            <!-- 总结与建议 -->
-            <RecommendationsSection />
+            <!-- 如果后端返回 Markdown 原文，则优先呈现 Markdown 预览 -->
+            <div v-if="responseData.markdown" class="markdown-preview" v-html="renderedMarkdown"></div>
 
             <!-- 报告尾部 -->
             <div class="report-footer">
@@ -87,6 +66,8 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import html2pdf from 'html2pdf.js'
+import jsPDF from 'jspdf'
+import { marked } from 'marked' 
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, HeadingLevel, AlignmentType } from 'docx'
 import { saveAs } from 'file-saver'
 
@@ -111,12 +92,33 @@ const dynamicWeeklyReportContent = computed(() => {
   return WEEKLY_REPORT_CONTENT
 })
 
+// 配置 marked 以支持 GFM 表格
+marked.setOptions({
+  breaks: true,
+  gfm: true,  // 启用 GitHub Flavored Markdown
+})
+
+// 渲染 Markdown 的 HTML，并给表格加上样式
+const renderedMarkdown = computed(() => {
+  const md = responseData.value?.markdown || ''
+  if (md) {
+    let html = marked.parse(md)
+    // 给表格添加内联样式
+    html = html.replace(/<table>/g, '<table style="width:100%;border-collapse:collapse;margin:16px 0;border:2px solid #000;">')
+    html = html.replace(/<th(\s|>)/g, '<th style="border:1px solid #000;padding:10px 12px;background:#E8E8E8;font-weight:600;text-align:center;"$1')
+    html = html.replace(/<td(\s|>)/g, '<td style="border:1px solid #000;padding:10px 12px;text-align:center;"$1')
+    html = html.replace(/<tr(\s|>)/g, '<tr style="border:1px solid #000;"$1')
+    return html
+  }
+  return ''
+})
+
 let currentTitle = ref('');
 
 // 从currentTitle中获得统计周期，正则表达式匹配中文括号中的文字
 
 const statsCycle = computed(() => {
-  const match = currentTitle.value.match(/（(.+)）/)
+  const match = currentTitle.value?.match(/（(.+)）/)
   return match ? match[1] : '未知统计周期'
 })
 
@@ -130,32 +132,192 @@ const regenerateReport = () => {
   router.push('/upload')
 }
 
-// PDF下载功能
+// PDF下载功能 - 直接捕获预览页面，确保与预览一致
 const downloadPDF = async () => {
   isGenerating.value = true
   
   try {
     const element = document.getElementById('report-content')
-    const opt = {
-      margin: 1,
-      filename: `${currentTitle.value}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { 
-        scale: 2,
-        useCORS: true,
-        letterRendering: true
-      },
-      jsPDF: { 
-        unit: 'in', 
-        format: 'a4', 
-        orientation: 'portrait' 
-      }
-    }
     
-    await html2pdf().set(opt).from(element).save()
+    if (!element) {
+      alert('找不到报告内容，请刷新页面后重试')
+      return
+    }
+
+    // 等待DOM完全渲染和样式应用
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    // 保存原始状态
+    const originalScrollTop = window.pageYOffset || document.documentElement.scrollTop
+    const originalScrollLeft = window.pageXOffset || document.documentElement.scrollLeft
+    
+    // 滚动到顶部，确保完整捕获
+    window.scrollTo(0, 0)
+    element.scrollIntoView({ behavior: 'instant', block: 'start' })
+    await new Promise(resolve => setTimeout(resolve, 500))
+
+    // 动态导入html2canvas（通过html2pdf.js的依赖）
+    const html2canvasModule = await import('html2canvas')
+    const html2canvas = html2canvasModule.default
+
+    // 获取元素的实际尺寸
+    const rect = element.getBoundingClientRect()
+    const elementWidth = element.scrollWidth || rect.width
+    const elementHeight = element.scrollHeight || rect.height
+
+    console.log('元素尺寸:', elementWidth, 'x', elementHeight)
+
+    // 使用html2canvas完整捕获预览页面
+    const canvas = await html2canvas(element, {
+      scale: 2, // 提高清晰度
+      useCORS: true,
+      letterRendering: true,
+      scrollX: 0,
+      scrollY: 0,
+      windowWidth: elementWidth,
+      windowHeight: elementHeight,
+      width: elementWidth,
+      height: elementHeight,
+      logging: false,
+      allowTaint: false,
+      backgroundColor: '#ffffff',
+      onclone: (clonedDoc) => {
+        // 确保克隆文档中的样式与预览页面完全一致
+        const clonedElement = clonedDoc.getElementById('report-content')
+        if (clonedElement) {
+          clonedElement.style.display = 'block'
+          clonedElement.style.visibility = 'visible'
+          clonedElement.style.width = elementWidth + 'px'
+          clonedElement.style.height = 'auto'
+          clonedElement.style.overflow = 'visible'
+          clonedElement.style.position = 'relative'
+          
+          // 确保所有表格和内容都可见
+          const tables = clonedElement.querySelectorAll('table')
+          tables.forEach(table => {
+            table.style.display = 'table'
+            table.style.width = '100%'
+            table.style.borderCollapse = 'collapse'
+            table.style.visibility = 'visible'
+          })
+          
+          const allElements = clonedElement.querySelectorAll('*')
+          allElements.forEach(el => {
+            if (el.style) {
+              el.style.visibility = 'visible'
+              el.style.opacity = '1'
+            }
+          })
+        }
+      }
+    })
+
+    console.log('Canvas尺寸:', canvas.width, 'x', canvas.height)
+
+    // PDF设置 (A4: 210mm x 297mm = 8.27in x 11.69in)
+    const pdfWidthInches = 8.27
+    const pdfHeightInches = 11.69
+    const marginInches = 0.5
+    const contentWidthInches = pdfWidthInches - (marginInches * 2)
+    const contentHeightInches = pdfHeightInches - (marginInches * 2)
+    
+    // canvas的缩放比例
+    const canvasScale = 2
+    
+    // canvas的实际尺寸（去除2倍缩放）
+    const actualCanvasWidth = canvas.width / canvasScale
+    const actualCanvasHeight = canvas.height / canvasScale
+    
+    // 计算缩放比例：确保宽度正好适配PDF页面宽度
+    // 宽度必须适配到contentWidthInches，高度按比例缩放
+    const widthScale = contentWidthInches / actualCanvasWidth
+    const heightScale = contentHeightInches / actualCanvasHeight
+    
+    // 使用宽度缩放比例，确保内容宽度正好填满PDF页面
+    const pdfScale = widthScale
+    
+    // 计算缩放后的实际高度（英寸）
+    const scaledHeightInches = actualCanvasHeight * pdfScale
+    
+    // 计算需要多少页
+    const totalPages = Math.ceil(scaledHeightInches / contentHeightInches)
+
+    console.log('Canvas实际尺寸:', actualCanvasWidth, 'x', actualCanvasHeight)
+    console.log('PDF内容区域:', contentWidthInches, 'x', contentHeightInches, 'inches')
+    console.log('缩放比例:', pdfScale)
+    console.log('缩放后高度:', scaledHeightInches, 'inches')
+    console.log('总页数:', totalPages)
+
+    // 创建PDF
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'in',
+      format: 'a4',
+      compress: true
+    })
+
+    // 分页处理，确保每页内容完整
+    for (let page = 0; page < totalPages; page++) {
+      if (page > 0) {
+        pdf.addPage()
+      }
+
+      // 计算当前页在canvas中的位置（像素）
+      // 每页在canvas中的高度 = canvas总高度 / 总页数
+      const pageHeightInCanvas = canvas.height / totalPages
+      const sourceY = pageHeightInCanvas * page
+      // 最后一页可能高度不同，需要确保不超过canvas高度
+      const sourceHeight = Math.min(pageHeightInCanvas, canvas.height - sourceY)
+      
+      // 创建临时canvas用于当前页
+      const pageCanvas = document.createElement('canvas')
+      pageCanvas.width = canvas.width
+      pageCanvas.height = sourceHeight
+      const pageCtx = pageCanvas.getContext('2d')
+      
+      // 绘制当前页的内容
+      pageCtx.drawImage(
+        canvas,
+        0, sourceY, canvas.width, sourceHeight,  // 源区域
+        0, 0, canvas.width, sourceHeight           // 目标区域
+      )
+
+      // 转换为图片数据
+      const imgData = pageCanvas.toDataURL('image/jpeg', 0.95)
+      
+      // 计算在PDF中的尺寸（英寸）
+      // 宽度：正好等于PDF内容区域宽度，确保完整显示
+      const pageWidthInches = contentWidthInches
+      
+      // 高度：按比例计算，但不超过一页的高度
+      const pageActualHeight = sourceHeight / canvasScale
+      const pageHeightInches = Math.min(
+        pageActualHeight * pdfScale,
+        contentHeightInches
+      )
+      
+      console.log(`第${page + 1}页: 宽度=${pageWidthInches.toFixed(2)}in, 高度=${pageHeightInches.toFixed(2)}in`)
+      
+      // 添加到PDF，确保宽度正好填满内容区域
+      pdf.addImage(
+        imgData,
+        'JPEG',
+        marginInches,
+        marginInches,
+        pageWidthInches,
+        pageHeightInches
+      )
+    }
+
+    // 保存PDF
+    pdf.save(`${currentTitle.value || '周报'}.pdf`)
+    
+    // 恢复原始滚动位置
+    window.scrollTo(originalScrollLeft, originalScrollTop)
+    
   } catch (error) {
     console.error('PDF生成失败:', error)
-    alert('PDF生成失败，请重试')
+    alert('PDF生成失败，请重试: ' + (error.message || error))
   } finally {
     isGenerating.value = false
   }
@@ -315,57 +477,189 @@ const WEEKLY_REPORT_CONTENT1 = `中部大区本周科技营销总结（10.3-10.9
 西南事业部	66
 成渝事业部	66`
 
-// 将文本内容转换为Word文档段落
-const convertTextToWordParagraphs = (text) => {
-  const lines = text.split('\n')
-  const paragraphs = []
-  
-  for (const line of lines) {
-    const trimmedLine = line.trim()
-    
-    if (trimmedLine === '') {
-      // 空行
-      paragraphs.push(new Paragraph({ text: "" }))
-    } else if (trimmedLine.match(/^.+大区本周科技营销总结/)) {
-      // 主标题
-      paragraphs.push(new Paragraph({
-        text: trimmedLine,
-        heading: HeadingLevel.TITLE,
-        alignment: AlignmentType.CENTER,
-      }))
-    } else if (trimmedLine.match(/^\d+\.\s/)) {
-      // 一级标题 (1. 2. 3. ...)
-      paragraphs.push(new Paragraph({
-        text: trimmedLine,
-        heading: HeadingLevel.HEADING_1,
-      }))
-    } else if (trimmedLine.match(/^\d+\.\d+\s/)) {
-      // 二级标题 (1.1 1.2 ...)
-      paragraphs.push(new Paragraph({
-        text: trimmedLine,
-        heading: HeadingLevel.HEADING_2,
-      }))
-    } else if (trimmedLine.match(/^\d+\.\d+\.\d+\s/)) {
-      // 三级标题 (1.1.1 ...)
-      paragraphs.push(new Paragraph({
-        text: trimmedLine,
-        heading: HeadingLevel.HEADING_3,
-      }))
-    } else if (trimmedLine.includes('\t') || trimmedLine.match(/^[^\s]+\s+[^\s]+\s+[^\s]+/)) {
-      // 表格行（包含制表符或多个空格分隔的数据）
-      paragraphs.push(new Paragraph({
-        text: trimmedLine,
-        style: "TableText",
-      }))
-    } else {
-      // 普通段落
-      paragraphs.push(new Paragraph({
-        text: trimmedLine,
-      }))
+// 将Markdown内容转换为Word文档元素
+const convertMarkdownToWord = (markdownText) => {
+  if (!markdownText) {
+    return []
+  }
+
+  const tokens = marked.lexer(markdownText)
+  const children = []
+
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i]
+
+    switch (token.type) {
+      case 'heading': {
+        // 处理标题
+        const level = token.depth
+        let headingLevel
+        if (level === 1) headingLevel = HeadingLevel.HEADING_1
+        else if (level === 2) headingLevel = HeadingLevel.HEADING_2
+        else if (level === 3) headingLevel = HeadingLevel.HEADING_3
+        else if (level === 4) headingLevel = HeadingLevel.HEADING_4
+        else if (level === 5) headingLevel = HeadingLevel.HEADING_5
+        else headingLevel = HeadingLevel.HEADING_6
+
+        // 如果是主标题（包含"大区本周科技营销总结"），使用TITLE并居中
+        const text = token.text
+        if (text.includes('大区本周科技营销总结')) {
+          children.push(new Paragraph({
+            text: text,
+            heading: HeadingLevel.TITLE,
+            alignment: AlignmentType.CENTER,
+          }))
+        } else {
+          children.push(new Paragraph({
+            text: text,
+            heading: headingLevel,
+          }))
+        }
+        break
+      }
+
+      case 'paragraph': {
+        // 处理段落
+        const text = token.text || ''
+        if (text.trim()) {
+          children.push(new Paragraph({
+            text: text,
+          }))
+        } else {
+          // 空段落
+          children.push(new Paragraph({ text: "" }))
+        }
+        break
+      }
+
+      case 'table': {
+        // 处理表格
+        const tableRows = []
+        
+        // 辅助函数：从cell中提取文本
+        const getCellText = (cell) => {
+          if (cell.text) {
+            return cell.text
+          }
+          // 如果有tokens，尝试从tokens中提取文本
+          if (cell.tokens && Array.isArray(cell.tokens)) {
+            return cell.tokens.map(t => t.text || t.raw || '').join('')
+          }
+          return cell.raw || ''
+        }
+        
+        // 处理表头
+        if (token.header && token.header.length > 0) {
+          const headerCells = token.header.map(cell => {
+            const cellText = getCellText(cell)
+            return new TableCell({
+              children: [new Paragraph({
+                text: cellText,
+                alignment: AlignmentType.CENTER,
+              })],
+            })
+          })
+          tableRows.push(new TableRow({
+            children: headerCells,
+          }))
+        }
+
+        // 处理表格数据行
+        if (token.rows && token.rows.length > 0) {
+          for (const row of token.rows) {
+            const rowCells = row.map(cell => {
+              const cellText = getCellText(cell)
+              return new TableCell({
+                children: [new Paragraph({
+                  text: cellText,
+                  alignment: AlignmentType.CENTER,
+                })],
+              })
+            })
+            tableRows.push(new TableRow({
+              children: rowCells,
+            }))
+          }
+        }
+
+        if (tableRows.length > 0) {
+          children.push(new Table({
+            rows: tableRows,
+            width: {
+              size: 100,
+              type: 'pct',
+            },
+          }))
+        }
+        break
+      }
+
+      case 'list': {
+        // 处理列表
+        if (token.ordered) {
+          // 有序列表
+          let index = 1
+          for (const item of token.items) {
+            const itemText = item.text || ''
+            children.push(new Paragraph({
+              text: `${index}. ${itemText}`,
+            }))
+            index++
+          }
+        } else {
+          // 无序列表
+          for (const item of token.items) {
+            const itemText = item.text || ''
+            children.push(new Paragraph({
+              text: `• ${itemText}`,
+            }))
+          }
+        }
+        break
+      }
+
+      case 'code': {
+        // 处理代码块
+        const codeText = token.text || token.raw || ''
+        children.push(new Paragraph({
+          children: [new TextRun({
+            text: codeText,
+            font: 'Courier New',
+          })],
+        }))
+        break
+      }
+
+      case 'blockquote': {
+        // 处理引用块
+        const quoteText = token.text || ''
+        children.push(new Paragraph({
+          text: quoteText,
+          indent: {
+            left: 720, // 0.5 inch in twips
+          },
+        }))
+        break
+      }
+
+      case 'hr': {
+        // 处理水平线 - 添加空段落作为分隔
+        children.push(new Paragraph({ text: "" }))
+        break
+      }
+
+      default:
+        // 其他类型，尝试提取文本
+        if (token.text) {
+          children.push(new Paragraph({
+            text: token.text,
+          }))
+        }
+        break
     }
   }
-  
-  return paragraphs
+
+  return children
 }
 
 // Word下载功能
@@ -373,17 +667,25 @@ const downloadWord = async () => {
   isGenerating.value = true
   
   try {
-    const paragraphs = convertTextToWordParagraphs(dynamicWeeklyReportContent.value)
+    // 使用markdown内容作为数据源
+    const markdownContent = responseData.value?.markdown || ''
+    
+    if (!markdownContent) {
+      alert('没有可用的报告内容，请先生成报告')
+      return
+    }
+
+    const children = convertMarkdownToWord(markdownContent)
     
     const doc = new Document({
       sections: [{
         properties: {},
-        children: paragraphs,
+        children: children,
       }],
     })
 
     const blob = await Packer.toBlob(doc)
-    saveAs(blob, `${currentTitle.value}.docx`)
+    saveAs(blob, `${currentTitle.value || '周报'}.docx`)
   } catch (error) {
     console.error('Word生成失败:', error)
     alert('Word生成失败，请重试')
@@ -402,13 +704,36 @@ function isEmptyObject(obj) {
 import response3 from '@/views/response2.json'
 onMounted(() => {
   console.log('cozeJson:', cozeStore.cozeJson)
-  if (!isEmptyObject(cozeStore.cozeJson) || true) {
-    console.log('真实数据')
-    responseData.value.content_structure = cozeStore.cozeJson.content;
-    currentTitle.value = cozeStore.cozeJson.title;
+  const rawData = cozeStore.cozeJson
 
-    // responseData.value.content_structure = response3.data.content
-    // currentTitle.value = response3.data.title
+  // 情况1: 后端返回字符串（Markdown）
+  if (typeof rawData === 'string') {
+    console.log('Markdown 字符串数据')
+    const lines = rawData.split('\n')
+    const firstLine = lines.find(l => l.trim().startsWith('# ')) || lines[0] || ''
+    const title = firstLine.replace(/^#\s*/,'').trim() || '未命名周报'
+    currentTitle.value = title
+    responseData.value.markdown = rawData
+    responseData.value.title = title
+    isResponseDataLoaded.value = true
+    console.log('Markdown 已加载，标题:', title)
+  }
+  // 情况2: 后端返回对象 { title, content: { raw: ... } }
+  else if (rawData?.content?.raw) {
+    console.log('对象数据（含 markdown raw）')
+    currentTitle.value = rawData.title ?? '未命名周报'
+    responseData.value.title = currentTitle.value
+    responseData.value.markdown = rawData.content.raw
+    responseData.value.content_structure = rawData.content
+    isResponseDataLoaded.value = true
+    console.log('数据已加载')
+  }
+  // 情况3: 传统结构化数据
+  else if (!isEmptyObject(rawData)) {
+    console.log('真实结构化数据')
+    responseData.value.content_structure = rawData.content || rawData;
+    responseData.value.title = rawData.title
+    currentTitle.value = rawData.title ?? '未命名周报';
     console.log('responseData', responseData.value);
     isResponseDataLoaded.value = true
   } else {
@@ -417,6 +742,7 @@ onMounted(() => {
     .then(response => {
       console.log('Success:', response.data.data.data);
       responseData.value.content_structure = response.data.data.data.content
+      responseData.value.title = response.data.data.data.title
       console.log('responseData', responseData.value);
       isResponseDataLoaded.value = true
     })
@@ -991,6 +1317,87 @@ onMounted(() => {
   
   .report-container {
     padding: 20px;
+  }
+
+  .markdown-preview {
+    background: white;
+    padding: 24px;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgba(16,24,40,0.06);
+    margin-bottom: 20px;
+    line-height: 1.6;
+    word-wrap: break-word;
+    overflow-x: auto;
+  }
+  .markdown-preview h1 { font-size: 28px; margin-top: 24px; margin-bottom: 16px; font-weight: 700; color: #1A1D29; }
+  .markdown-preview h2 { font-size: 24px; margin-top: 20px; margin-bottom: 12px; font-weight: 600; color: #1A1D29; }
+  .markdown-preview h3 { font-size: 20px; margin-top: 16px; margin-bottom: 10px; font-weight: 600; color: #4B5563; }
+  .markdown-preview h4 { font-size: 16px; margin-top: 12px; margin-bottom: 8px; font-weight: 600; color: #4B5563; }
+  .markdown-preview p { margin-bottom: 12px; color: #4B5563; }
+  .markdown-preview ul, .markdown-preview ol { margin-bottom: 16px; padding-left: 24px; }
+  .markdown-preview li { margin-bottom: 6px; }
+  
+  .markdown-preview > table,
+  .markdown-preview table { 
+    width: 100% !important; 
+    border-collapse: collapse !important; 
+    margin: 16px 0 !important;
+    border: 2px solid #000 !important;
+  }
+  .markdown-preview table > thead,
+  .markdown-preview table > tbody {
+    display: table-row-group;
+  }
+  .markdown-preview table thead > tr,
+  .markdown-preview table tbody > tr {
+    border: 1px solid #000 !important;
+  }
+  .markdown-preview table > thead > tr > th,
+  .markdown-preview table th {
+    border: 1px solid #000 !important;
+    padding: 12px !important;
+    text-align: center !important;
+    font-weight: 600 !important;
+    color: #1F2937 !important;
+    background: #E8E8E8 !important;
+    font-size: 13px !important;
+  }
+  .markdown-preview table > tbody > tr > td,
+  .markdown-preview table td {
+    border: 1px solid #000 !important;
+    padding: 10px 12px !important;
+    text-align: center !important;
+    color: #4B5563 !important;
+    font-size: 13px !important;
+  }
+  .markdown-preview table > tbody > tr:nth-child(odd) { 
+    background: #F5F5F5 !important;
+  }
+  .markdown-preview table > tbody > tr:hover { 
+    background: #FFFACD !important;
+  }
+  
+  .markdown-preview code { 
+    background: #F3F4F6;
+    padding: 2px 6px;
+    border-radius: 3px;
+    font-family: 'Courier New', monospace;
+    color: #DC2626;
+  }
+  .markdown-preview pre {
+    background: #1F2937;
+    color: #F3F4F6;
+    padding: 12px;
+    border-radius: 6px;
+    overflow-x: auto;
+    margin: 12px 0;
+  }
+  .markdown-preview blockquote {
+    border-left: 4px solid #5570F1;
+    padding-left: 12px;
+    margin-left: 0;
+    color: #6B7280;
+    font-style: italic;
   }
 }
 </style>

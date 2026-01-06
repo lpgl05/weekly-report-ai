@@ -41,7 +41,7 @@ public class CozeWorkflowController {
         }
         AjaxResult ajaxResult;
         try {
-            ajaxResult = cozeWorkflowService.callCozeWorkflow(region);
+           ajaxResult = cozeWorkflowService.callCozeWorkflow(region);
         } catch (Exception e) {
             LOG.error("postCozeWorkflow:调用Coze工作流失败", e);
             ajaxResult = AjaxResult.error("调用Coze工作流失败");
