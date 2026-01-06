@@ -14,7 +14,7 @@ public class CorsConfig implements WebMvcConfigurer {
     @Override
     public void addCorsMappings(CorsRegistry registry) {
         registry.addMapping("/api/**")
-                // 允许本机开发与预览地址（localhost 与 127.0.0.1）
+                // 允许本机开发与预览地址（localhost 与 127.0.0.1）以及公网部署地址
                 .allowedOrigins(
                         "http://localhost:4173",
                         "http://127.0.0.1:4173",
@@ -22,7 +22,9 @@ public class CorsConfig implements WebMvcConfigurer {
                         "http://127.0.0.1:5173",
                         // 补充：Vite dev 端口占用时会自动切换到 5174
                         "http://localhost:5174",
-                        "http://127.0.0.1:5174"
+                        "http://127.0.0.1:5174",
+                        // 公网部署地址
+                        "http://115.190.64.160:1218"
                 )
                 .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
                 .allowedHeaders("*")

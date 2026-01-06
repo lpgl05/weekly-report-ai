@@ -120,7 +120,7 @@ const markdownHtml = ref('')
 const markdownText = ref('')
 
 // render markdown if available
-const renderMarkdown = async (mdText: string) => {
+const renderMarkdown = async (mdText) => {
   try {
     markdownHtml.value = await (marked.parse(mdText) as Promise<string>)
   } catch (e) {
@@ -168,7 +168,7 @@ const downloadPDF = async () => {
     const mdFile = (cozeStore.cozeJson as any).markdownFile
     let element
     if (mdFile) {
-      const resp = await fetch(`/api/markdown?file=${encodeURIComponent(mdFile)}`)
+      const resp = await fetch(`http://115.190.64.160:9696/api/markdown?file=${encodeURIComponent(mdFile)}`)
       if (!resp.ok) throw new Error('failed to fetch markdown')
       const mdText = await resp.text()
       const html = await (marked.parse(mdText) as Promise<string>)
@@ -435,7 +435,7 @@ const downloadWord = async () => {
     const mdFile = (cozeStore.cozeJson as any).markdownFile
     let mdText = ''
     if (mdFile) {
-      const resp = await fetch(`/api/markdown?file=${encodeURIComponent(mdFile)}`)
+      const resp = await fetch(`http://115.190.64.160:9696/api/markdown?file=${encodeURIComponent(mdFile)}`)
       if (!resp.ok) throw new Error('failed to fetch markdown')
       mdText = await resp.text()
     } else {
