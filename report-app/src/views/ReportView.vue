@@ -43,48 +43,39 @@
 
         <!-- 报告预览区域 -->
         <div class="report-preview">
-          <div id="report-content" class="report-container">
-            <!-- 如果后端返回 markdown，则直接渲染 markdown -->
-            <div v-if="(cozeStore.cozeJson as any).markdown">
-              <div class="markdown-preview" v-html="markdownHtml"></div>
-            </div>
+          <div id="report-content" class="report-container" v-if="isResponseDataLoaded">
+            <!-- 报告头部 -->
+            <ReportHeader :responseData="responseData" @updateDocxContent="updateDocxContent" />
 
-            <!-- 否则使用原有组件渲染结构化数据 -->
-            <div v-else-if="isResponseDataLoaded">
-              <!-- 报告头部 -->
-              <ReportHeader :responseData="responseData" @updateDocxContent="updateDocxContent" />
+            <!-- 1. 冷线索部分 -->
+            <ColdLeadsSection :responseData="responseData" @updateDocxContent="updateDocxContent" />
 
-              <!-- 1. 冷线索部分 -->
-              <ColdLeadsSection :responseData="responseData" @updateDocxContent="updateDocxContent" />
+            <!-- 2. 热线索部分 -->
+            <HotLeadsSection :responseData="responseData" @updateDocxContent="updateDocxContent" />
 
-              <!-- 2. 热线索部分 -->
-              <HotLeadsSection :responseData="responseData" @updateDocxContent="updateDocxContent" />
+            <!-- 3. AI销售助手部分 -->
+            <AiSalesSection :responseData="responseData" @updateDocxContent="updateDocxContent" />
 
-              <!-- 3. AI销售助手部分 -->
-              <AiSalesSection :responseData="responseData" @updateDocxContent="updateDocxContent" />
+            <!-- 4. 找客雷达获客部分 -->
+            <CustomerAcquisitionSection :responseData="responseData" @updateDocxContent="updateDocxContent" />
 
-              <!-- 4. 找客雷达获客部分 -->
-              <CustomerAcquisitionSection :responseData="responseData" @updateDocxContent="updateDocxContent" />
+            <!-- 5. 直播部分 -->
+            <LiveStreamingSection :responseData="responseData" @updateDocxContent="updateDocxContent" />
 
-              <!-- 5. 直播部分 -->
-              <LiveStreamingSection :responseData="responseData" @updateDocxContent="updateDocxContent" />
+            <!-- 6. 商机一码通部分 -->
+            <BusinessOpportunitySection :responseData="responseData" @updateDocxContent="updateDocxContent" />
 
-              <!-- 6. 商机一码通部分 -->
-              <BusinessOpportunitySection :responseData="responseData" @updateDocxContent="updateDocxContent" />
+            <!-- 总结与建议 -->
+            <RecommendationsSection />
 
-              <!-- 总结与建议 -->
-              <RecommendationsSection />
-
-              <!-- 报告尾部 -->
-              <div class="report-footer">
-                <div class="footer-info">
-                  <p>本报告由天九科技营销智能化系统自动生成</p>
-                  <p>生成时间：{{ generateTime }}</p>
-                  <p>数据统计周期：{{ statsCycle }}</p>
-                </div>
+            <!-- 报告尾部 -->
+            <div class="report-footer">
+              <div class="footer-info">
+                <p>本报告由天九科技营销智能化系统自动生成</p>
+                <p>生成时间：{{ generateTime }}</p>
+                <p>数据统计周期：{{ statsCycle }}</p>
               </div>
             </div>
-
           </div>
         </div>
       </div>
@@ -96,7 +87,6 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import html2pdf from 'html2pdf.js'
-import { marked } from 'marked'
 import { Document, Packer, Paragraph, TextRun, Table, TableRow, TableCell, HeadingLevel, AlignmentType } from 'docx'
 import { saveAs } from 'file-saver'
 
@@ -115,26 +105,6 @@ const route = useRoute()
 const isGenerating = ref(false)
 const generateTime = ref(new Date().toLocaleString('zh-CN'))
 const cozeStore = useCozeStore();
-
-const markdownHtml = ref('')
-const markdownText = ref('')
-
-// render markdown if available
-const renderMarkdown = async (mdText) => {
-  try {
-    markdownHtml.value = await (marked.parse(mdText) as Promise<string>)
-  } catch (e) {
-    markdownHtml.value = ''
-    console.error('parse markdown failed', e)
-  }
-}
-
-// watch cozeStore for markdown
-if (cozeStore.cozeJson && (cozeStore.cozeJson as any).markdown) {
-  markdownText.value = (cozeStore.cozeJson as any).markdown
-  renderMarkdown(markdownText.value)
-}
-
 
 // 动态生成周报内容
 const dynamicWeeklyReportContent = computed(() => {
@@ -163,56 +133,26 @@ const regenerateReport = () => {
 // PDF下载功能
 const downloadPDF = async () => {
   isGenerating.value = true
+  
   try {
-    // 如果后端提供了 markdown 文件名，优先通过文件接口获取 markdown 并渲染成 HTML 再导出 PDF
-    const mdFile = (cozeStore.cozeJson as any).markdownFile
-    let element
-    if (mdFile) {
-      const resp = await fetch(`http://115.190.64.160:9696/api/markdown?file=${encodeURIComponent(mdFile)}`)
-      if (!resp.ok) throw new Error('failed to fetch markdown')
-      const mdText = await resp.text()
-      const html = await (marked.parse(mdText) as Promise<string>)
-      const tempDiv = document.createElement('div')
-      tempDiv.style.padding = '20px'
-      tempDiv.innerHTML = html
-      document.body.appendChild(tempDiv)
-      element = tempDiv
-      const opt = {
-        margin: 1,
-        filename: `${currentTitle.value || mdFile}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: 2,
-          useCORS: true,
-          letterRendering: true
-        },
-        jsPDF: { 
-          unit: 'in', 
-          format: 'a4', 
-          orientation: 'portrait' 
-        }
+    const element = document.getElementById('report-content')
+    const opt = {
+      margin: 1,
+      filename: `${currentTitle.value}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { 
+        scale: 2,
+        useCORS: true,
+        letterRendering: true
+      },
+      jsPDF: { 
+        unit: 'in', 
+        format: 'a4', 
+        orientation: 'portrait' 
       }
-      await html2pdf().set(opt).from(element).save()
-      document.body.removeChild(tempDiv)
-    } else {
-      const element = document.getElementById('report-content')
-      const opt = {
-        margin: 1,
-        filename: `${currentTitle.value}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { 
-          scale: 2,
-          useCORS: true,
-          letterRendering: true
-        },
-        jsPDF: { 
-          unit: 'in', 
-          format: 'a4', 
-          orientation: 'portrait' 
-        }
-      }
-      await html2pdf().set(opt).from(element).save()
     }
+    
+    await html2pdf().set(opt).from(element).save()
   } catch (error) {
     console.error('PDF生成失败:', error)
     alert('PDF生成失败，请重试')
@@ -431,20 +371,10 @@ const convertTextToWordParagraphs = (text) => {
 // Word下载功能
 const downloadWord = async () => {
   isGenerating.value = true
+  
   try {
-    const mdFile = (cozeStore.cozeJson as any).markdownFile
-    let mdText = ''
-    if (mdFile) {
-      const resp = await fetch(`http://115.190.64.160:9696/api/markdown?file=${encodeURIComponent(mdFile)}`)
-      if (!resp.ok) throw new Error('failed to fetch markdown')
-      mdText = await resp.text()
-    } else {
-      // fallback to using accumulated content
-      mdText = dynamicWeeklyReportContent.value
-    }
-
-    const paragraphs = convertTextToWordParagraphs(mdText)
-
+    const paragraphs = convertTextToWordParagraphs(dynamicWeeklyReportContent.value)
+    
     const doc = new Document({
       sections: [{
         properties: {},
@@ -453,8 +383,7 @@ const downloadWord = async () => {
     })
 
     const blob = await Packer.toBlob(doc)
-    const fileName = (cozeStore.cozeJson as any).markdownFile ? (cozeStore.cozeJson as any).markdownFile.replace(/\.md$/, '.docx') : `${currentTitle.value}.docx`
-    saveAs(blob, fileName)
+    saveAs(blob, `${currentTitle.value}.docx`)
   } catch (error) {
     console.error('Word生成失败:', error)
     alert('Word生成失败，请重试')
@@ -473,21 +402,7 @@ function isEmptyObject(obj) {
 import response3 from '@/views/response2.json'
 onMounted(() => {
   console.log('cozeJson:', cozeStore.cozeJson)
-  // 如果后端返回 markdown，则直接渲染 markdown
-  if ((cozeStore.cozeJson as any).markdown) {
-    console.log('使用 markdown 渲染')
-    markdownText.value = (cozeStore.cozeJson as any).markdown
-    renderMarkdown(markdownText.value)
-    // 尝试用 markdown 第一行作为标题
-    const firstLine = markdownText.value.split('\n')[0] || ''
-    const m = firstLine.match(/^#\s*(.+)/)
-    currentTitle.value = m ? m[1] : (cozeStore.cozeJson as any).markdownFile || currentTitle.value
-    isResponseDataLoaded.value = true
-    return
-  }
-
-  // 兼容老的数据结构
-  if (!isEmptyObject(cozeStore.cozeJson)) {
+  if (!isEmptyObject(cozeStore.cozeJson) || true) {
     console.log('真实数据')
     responseData.value.content_structure = cozeStore.cozeJson.content;
     currentTitle.value = cozeStore.cozeJson.title;

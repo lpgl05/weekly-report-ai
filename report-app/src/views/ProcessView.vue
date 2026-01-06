@@ -196,8 +196,7 @@ const submitRegionData = (region) => {
     .then((response) => {
       if (response.data.code === 200) {
         console.log('提交成功:', response);
-        // 保存后端返回的 markdown 和文件名
-        cozeStore.setCozeJson({ markdown: response.data.data, markdownFile: response.data.markdownFile })
+        cozeStore.setCozeJson(response.data.data)
         router.push('/report'); // 跳转到报告页
         // return response.data; // 成功返回完整响应数据
         clearInterval(timer)
